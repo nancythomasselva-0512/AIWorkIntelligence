@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: 'Inter', sans-serif;
+  --font-outfit: 'Outfit', sans-serif;
+  --bg-gradient-top: #0a1118;
+  --bg-gradient-bottom: #7b8f9e;
+  --bg-dark: #121e27;
+}
+
+body {
+  font-family: var(--font-inter);
+  background-color: #ffffff;
+  color: #0f172a;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-outfit);
+}
+
+.opti-gradient-bg {
+  background: linear-gradient(180deg, var(--bg-gradient-top) 0%, var(--bg-dark) 40%, var(--bg-gradient-bottom) 100%);
+}
+
+.opti-glass {
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}

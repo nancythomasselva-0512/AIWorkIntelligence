@@ -1,20 +1,21 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { BarChart3, ChevronDown, Play, Mic, StopCircle, Loader2, CheckCircle2, BrainCircuit, FileText, Users, Clock, ArrowRight, LayoutDashboard, Zap, Star, Activity, PlusCircle, TrendingUp, DollarSign } from 'lucide-react';
+import { BarChart3, ChevronDown, Play, Mic, StopCircle, Loader2, CheckCircle2, BrainCircuit, FileText, Users, Clock, ArrowRight, LayoutDashboard, Zap, Star, Activity, PlusCircle, TrendingUp, DollarSign, Moon, Sun } from 'lucide-react';
+import { useTheme } from '../providers/ThemeProvider';
 import axios from 'axios';
+import api from '../utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
 export default function Home() {
+  const { theme, toggleTheme } = useTheme();
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [recognition, setRecognition] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  const [isWorkIntelOpen, setIsWorkIntelOpen] = useState(false);
-  const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
   const [recentLogs, setRecentLogs] = useState<any[]>([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState(true);
 
@@ -28,16 +29,31 @@ export default function Home() {
   const [tasksCompleted, setTasksCompleted] = useState<number | string>("Data not available yet");
   const [meetingsCount, setMeetingsCount] = useState<number | string>("Data not available yet");
 
+  const [userRole, setUserRole] = useState('intern');
+
   useEffect(() => {
-    fetchRecentLogs();
+    // Read role from localStorage
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+      if (storedUser && token) {
+        try {
+          const userObj = JSON.parse(storedUser);
+          setUserRole(userObj.role);
+          fetchRecentLogs();
+        } catch(e) {}
+      } else {
+        setIsLoadingLogs(false);
+      }
+    }
   }, []);
 
   const fetchRecentLogs = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/worklogs?limit=4`);
+      const res = await api.get('/worklogs?limit=4');
       setRecentLogs(res.data.data || res.data || []);
 
-      const allLogsRes = await axios.get(`${API_BASE_URL}/worklogs?limit=100`);
+      const allLogsRes = await api.get('/worklogs?limit=100');
       const allLogs = allLogsRes.data.data || allLogsRes.data || [];
 
       if (allLogs.length > 0) {
@@ -78,7 +94,7 @@ export default function Home() {
       }
 
       try {
-        const revRes = await axios.get(`${API_BASE_URL}/revenue?limit=100`);
+        const revRes = await api.get('/revenue');
         const revData = revRes.data.data || revRes.data || [];
         setRevenueActivities(revData.length > 0 ? revData.length.toString() : "0");
       } catch (e) {
@@ -99,7 +115,7 @@ export default function Home() {
     if (!textToSave.trim()) return;
     setIsSaving(true);
     try {
-      await axios.post(`${API_BASE_URL}/worklogs`, { textContent: textToSave });
+      await api.post('/worklogs', { textContent: textToSave });
       setTranscript('');
       transcriptRef.current = '';
       setToastMessage('Saved to dashboard successfully!');
@@ -175,61 +191,6 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Floating Action Button (Quick Actions) */}
-      <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end">
-        <AnimatePresence>
-          {isQuickActionsOpen && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.9 }}
-              className="mb-4 bg-[#071420]/90 backdrop-blur-xl border border-white/10 rounded-3xl p-3 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col gap-2 w-64 origin-bottom-right"
-            >
-              <div className="text-xs font-bold text-gray-400 uppercase tracking-wider px-3 pb-2 pt-1 border-b border-white/10 mb-1">Quick Actions</div>
-              
-              <Link href="/dashboard/intelligence/voice-capture" onClick={() => setIsQuickActionsOpen(false)} className="flex items-center gap-3 group hover:bg-white/5 p-3 rounded-2xl transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-opti-lime/10 flex items-center justify-center text-opti-lime group-hover:bg-opti-lime group-hover:text-[#071420] transition-colors"><Mic className="w-5 h-5" /></div>
-                <div>
-                  <div className="text-sm font-bold text-white group-hover:text-opti-lime transition-colors">Voice Capture</div>
-                  <div className="text-[10px] text-gray-400">Record a new task</div>
-                </div>
-              </Link>
-              
-              <Link href="/dashboard/intelligence/tasks" onClick={() => setIsQuickActionsOpen(false)} className="flex items-center gap-3 group hover:bg-white/5 p-3 rounded-2xl transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-[#3F2B63] flex items-center justify-center text-[#B084FF] group-hover:bg-[#B084FF] group-hover:text-white transition-colors"><CheckCircle2 className="w-5 h-5" /></div>
-                <div>
-                  <div className="text-sm font-bold text-white group-hover:text-[#B084FF] transition-colors">Create Task</div>
-                  <div className="text-[10px] text-gray-400">Add manual task</div>
-                </div>
-              </Link>
-              
-              <Link href="/dashboard/intelligence/meetings" onClick={() => setIsQuickActionsOpen(false)} className="flex items-center gap-3 group hover:bg-white/5 p-3 rounded-2xl transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-[#1D3B5C] flex items-center justify-center text-[#60A5FA] group-hover:bg-[#60A5FA] group-hover:text-white transition-colors"><Users className="w-5 h-5" /></div>
-                <div>
-                  <div className="text-sm font-bold text-white group-hover:text-[#60A5FA] transition-colors">Meeting Note</div>
-                  <div className="text-[10px] text-gray-400">Log a discussion</div>
-                </div>
-              </Link>
-              
-              <Link href="/dashboard/intelligence/daily-updates" onClick={() => setIsQuickActionsOpen(false)} className="flex items-center gap-3 group hover:bg-white/5 p-3 rounded-2xl transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-[#4E3B1C] flex items-center justify-center text-[#FBBF24] group-hover:bg-[#FBBF24] group-hover:text-white transition-colors"><FileText className="w-5 h-5" /></div>
-                <div>
-                  <div className="text-sm font-bold text-white group-hover:text-[#FBBF24] transition-colors">Daily Summary</div>
-                  <div className="text-[10px] text-gray-400">Generate DSR</div>
-                </div>
-              </Link>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <button 
-          onClick={() => setIsQuickActionsOpen(!isQuickActionsOpen)}
-          className={`w-16 h-16 rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(199,242,58,0.3)] transition-all duration-300 ${isQuickActionsOpen ? 'bg-[#0F1F2E] border border-white/20 text-white rotate-45' : 'bg-opti-lime text-[#071420] hover:scale-105'}`}
-        >
-          <PlusCircle className="w-8 h-8" />
-        </button>
-      </div>
-
       <div className="opti-gradient-bg relative pb-16">
 
         {/* Navbar */}
@@ -243,54 +204,33 @@ export default function Home() {
           <div className="hidden lg:flex items-center gap-6 bg-white/5 backdrop-blur-md px-8 py-3 rounded-full border border-white/10 shadow-xl relative">
             <Link href="#home" className="text-sm font-semibold text-white hover:text-opti-lime transition-colors">Home</Link>
 
-            <div
-              className="relative py-2"
-              onMouseEnter={() => setIsWorkIntelOpen(true)}
-              onMouseLeave={() => setIsWorkIntelOpen(false)}
-            >
-              <Link href="#intelligence" onClick={() => setIsWorkIntelOpen(false)} className="flex items-center gap-1 text-sm font-semibold text-opti-muted hover:text-white transition-colors cursor-pointer">
-                Work Intelligence <ChevronDown className="w-4 h-4" />
-              </Link>
-
-              <AnimatePresence>
-                {isWorkIntelOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute top-[100%] left-1/2 -translate-x-1/2 mt-2 w-[340px] bg-[#0F1F2E] border border-white/10 rounded-2xl shadow-2xl p-4 flex flex-col gap-2 z-50"
-                  >
-                    {[
-                      { icon: Mic, title: 'Voice Capture', desc: 'Real-time speech to text conversion', href: '/dashboard/intelligence/voice-capture' },
-                      { icon: FileText, title: 'Work Logs', desc: 'View, filter, and manage tasks', href: '/dashboard/intelligence/work-logs' },
-                      { icon: CheckCircle2, title: 'Tasks', desc: 'Priority and status tracking', href: '/dashboard/intelligence/tasks' },
-                      { icon: Users, title: 'Meetings', desc: 'Notes and action items', href: '/dashboard/intelligence/meetings' },
-                      { icon: Clock, title: 'Daily Updates', desc: 'DSR and activity timeline', href: '/dashboard/intelligence/daily-updates' }
-                    ].map((item, idx) => (
-                      <Link key={idx} href={item.href} onClick={() => setIsWorkIntelOpen(false)} className="group flex items-start gap-4 p-3 rounded-xl hover:bg-white/5 transition-all">
-                        <div className="w-10 h-10 rounded-lg bg-[#071420] border border-white/5 flex items-center justify-center group-hover:border-[#C7F23A]/50 transition-colors shrink-0">
-                          <item.icon className="w-5 h-5 text-[#C7F23A]" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-white group-hover:text-[#C7F23A] transition-colors">{item.title}</div>
-                          <div className="text-xs text-gray-400 mt-1 leading-snug">{item.desc}</div>
-                        </div>
-                      </Link>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <Link href="#intelligence" className="text-sm font-semibold text-opti-muted hover:text-white transition-colors cursor-pointer">
+              Work Intelligence
+            </Link>
             <Link href="#projects" className="text-sm font-semibold text-opti-muted hover:text-white transition-colors">Projects</Link>
-            <Link href="#finance" className="text-sm font-semibold text-opti-muted hover:text-white transition-colors">Revenue</Link>
-            <Link href="#analytics" className="text-sm font-semibold text-opti-muted hover:text-white transition-colors">Analytics</Link>
+            {userRole !== 'intern' && (
+              <>
+                <Link href="#finance" className="text-sm font-semibold text-opti-muted hover:text-white transition-colors">Revenue</Link>
+                <Link href="#analytics" className="text-sm font-semibold text-opti-muted hover:text-white transition-colors">Analytics</Link>
+              </>
+            )}
             <Link href="#ai" className="text-sm font-semibold text-opti-muted hover:text-white transition-colors">AI Center</Link>
-            <Link href="#admin" className="text-sm font-semibold text-opti-muted hover:text-white transition-colors">Admin</Link>
+            {userRole === 'it_administrator' && (
+              <Link href="#admin" className="text-sm font-semibold text-opti-muted hover:text-white transition-colors">Admin</Link>
+            )}
           </div>
-          <Link href="/dashboard" className="bg-white text-opti-dark font-semibold px-6 py-3 rounded-full hover:bg-gray-100 transition-all flex items-center">
-            Open Dashboard <span className="ml-2">→</span>
-          </Link>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={toggleTheme}
+              className="p-3 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center text-white"
+              title="Toggle Theme"
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+            <Link href="/login" className="bg-opti-lime text-[#071420] text-sm font-bold px-5 py-2.5 rounded-full hover:bg-opti-lime-hover transition-all flex items-center">
+              Login / Sign Up <span className="ml-2">→</span>
+            </Link>
+          </div>
         </nav>
 
         {/* Hero */}
@@ -607,6 +547,7 @@ export default function Home() {
           </div>
         </section>
 
+        {userRole !== 'intern' && (
         <section id="finance" className="pt-20">
           <div className="mb-10 text-center">
             <h2 className="text-4xl font-bold text-white mb-4">Revenue & GST</h2>
@@ -636,7 +577,9 @@ export default function Home() {
             </div>
           </div>
         </section>
+        )}
 
+        {userRole !== 'intern' && (
         <section id="analytics" className="pt-20">
           <div className="mb-10 text-center">
             <h2 className="text-4xl font-bold text-white mb-4">Analytics Dashboard</h2>
@@ -648,6 +591,7 @@ export default function Home() {
             <p className="text-sm text-gray-400">Log in to view complete trend data and hours logged.</p>
           </div>
         </section>
+        )}
 
         <section id="ai" className="pt-20">
           <div className="mb-10 text-center">
@@ -666,6 +610,7 @@ export default function Home() {
           </div>
         </section>
 
+        {userRole === 'it_administrator' && (
         <section id="admin" className="pt-20 pb-20">
           <div className="mb-10 text-center">
             <h2 className="text-4xl font-bold text-white mb-4">Admin Hub</h2>
@@ -677,6 +622,7 @@ export default function Home() {
             <div className="px-6 py-3 bg-[#071420] text-gray-300 rounded-lg text-sm">API Settings</div>
           </div>
         </section>
+        )}
       </div>
 
     </main>

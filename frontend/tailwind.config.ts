@@ -9,6 +9,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        'theme-main': 'var(--bg-main)',
+        'theme-panel': 'var(--bg-panel)',
+        'theme-text': 'var(--text-primary)',
+        'theme-text-sec': 'var(--text-secondary)',
+        'theme-border': 'var(--border-color)',
+        'theme-border-light': 'var(--border-color-light)',
+        'theme-accent': 'var(--accent-color)',
+        'theme-accent-hover': 'var(--accent-hover)',
+        'theme-accent-text': 'var(--accent-text)',
         'opti-dark': '#0f172a',
         'opti-slate': '#1e293b',
         'opti-lime': '#c4f03f',

@@ -1,15 +1,2 @@
-FROM node:20-alpine
-
-WORKDIR /usr/src/app
-
-COPY package*.json ./
-
-RUN npm install
-
-COPY . .
-
-RUN npm run build
-
-EXPOSE 3001
-
-CMD ["npm", "run", "start:prod"]
+# This file has been deprecated and intentionally left blank since we are using local SQLite instead of Docker.
+# Feel free to safely delete this file from your filesystem!

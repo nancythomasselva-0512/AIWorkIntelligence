@@ -43,6 +43,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-6">
+            <Link href="/dashboard/reports" className="hidden md:flex items-center gap-2 text-sm font-semibold text-gray-300 hover:text-white transition-colors bg-white/5 px-4 py-2 rounded-full border border-white/10 hover:border-opti-lime/50">
+              <FileText size={16} /> Reports
+            </Link>
+
             <div className="relative w-64 hidden md:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input

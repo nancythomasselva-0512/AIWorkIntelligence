@@ -9,10 +9,15 @@ import Link from 'next/link';
 import api from '../../../utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import UsersTab from './components/UsersTab';
+import OrganizationsTab from './components/OrganizationsTab';
+import ProjectsTab from './components/ProjectsTab';
+import { Users, Briefcase, FolderGit2 } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
 export default function AdminPage() {
+  const [activeTab, setActiveTab] = useState('command-center');
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [recognition, setRecognition] = useState<any>(null);
@@ -344,8 +349,38 @@ export default function AdminPage() {
         )}
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      {/* Tab Navigation */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-4 mb-6">
+        <button 
+          onClick={() => setActiveTab('command-center')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors ${activeTab === 'command-center' ? 'bg-opti-lime text-[#071420]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+        >
+          <Mic size={16} /> Command Center
+        </button>
+        <button 
+          onClick={() => setActiveTab('users')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors ${activeTab === 'users' ? 'bg-opti-lime text-[#071420]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+        >
+          <Users size={16} /> User Management
+        </button>
+        <button 
+          onClick={() => setActiveTab('organizations')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors ${activeTab === 'organizations' ? 'bg-opti-lime text-[#071420]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+        >
+          <Briefcase size={16} /> Organizations
+        </button>
+        <button 
+          onClick={() => setActiveTab('projects')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors ${activeTab === 'projects' ? 'bg-opti-lime text-[#071420]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+        >
+          <FolderGit2 size={16} /> Projects
+        </button>
+      </div>
+
+      {activeTab === 'command-center' && (
+        <div className="space-y-6">
+          {/* Main Grid */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
         {/* Panel 1: Record Your Voice */}
         <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 flex flex-col h-full">
@@ -638,6 +673,12 @@ export default function AdminPage() {
         </div>
 
       </div>
+      </div>
+      )}
+
+      {activeTab === 'users' && <UsersTab />}
+      {activeTab === 'organizations' && <OrganizationsTab />}
+      {activeTab === 'projects' && <ProjectsTab />}
 
       {/* Edit Modal */}
       <AnimatePresence>

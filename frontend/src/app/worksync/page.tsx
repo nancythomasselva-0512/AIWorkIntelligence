@@ -4,7 +4,7 @@ import { Mic, StopCircle, Pause, Trash2, CheckCircle2, Globe, ArrowLeft, Hexagon
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import api from '../../../../utils/api'; // might need this if we still want to save to db
+import api from '../../utils/api'; // might need this if we still want to save to db
 import jsPDF from 'jspdf';
 import * as pdfjsLib from 'pdfjs-dist';
 import mammoth from 'mammoth';
@@ -452,7 +452,7 @@ export default function VoiceCapturePage() {
   });
 
   return (
-    <div className="h-[calc(100vh-140px)] bg-[#071420] text-white font-inter flex flex-col overflow-hidden rounded-2xl border border-white/5">
+    <div className="h-screen bg-[#071420] text-white font-inter flex flex-col overflow-hidden">
       
       {/* Toast */}
       <AnimatePresence>
@@ -468,6 +468,17 @@ export default function VoiceCapturePage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <header className="h-20 border-b border-white/10 px-8 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+          <ArrowLeft size={20} /> Back to Home
+        </Link>
+        <div className="flex items-center gap-2 text-xl font-bold">
+          <Hexagon className="text-opti-lime" size={28} />
+          <span>WorkSync Engine</span>
+        </div>
+        <div className="w-24"></div> {/* spacer */}
+      </header>
 
       <div className="px-8 mt-6">
         <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-4">
@@ -564,6 +575,20 @@ export default function VoiceCapturePage() {
                 </h2>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2 bg-[#071420] border border-white/10 rounded-lg px-3 py-1.5 shadow-sm">
+                    <User className="w-4 h-4 text-opti-lime" /> 
+                    <select 
+                      value={role}
+                      onChange={(e) => setRole(e.target.value)}
+                      disabled={isRecording}
+                      className="bg-transparent text-white text-sm font-bold focus:outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <option value="intern" className="bg-[#0F1F2E]">Intern</option>
+                      <option value="mentor" className="bg-[#0F1F2E]">Mentor</option>
+                      <option value="it_administrator" className="bg-[#0F1F2E]">IT Administrator</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-2 bg-[#071420] border border-white/10 rounded-lg px-3 py-1.5 shadow-sm">
                     <Globe className="w-4 h-4 text-opti-lime" /> 
                     <select 
                       value={language}
@@ -600,6 +625,19 @@ export default function VoiceCapturePage() {
              <div className="flex justify-between items-center mb-6">
                <h2 className="text-xl font-bold">Manual Text Input</h2>
                <div className="flex items-center gap-3">
+                 <div className="flex items-center gap-2 bg-[#071420] border border-white/10 rounded-lg px-3 py-1.5 shadow-sm">
+                   <User className="w-4 h-4 text-opti-lime" /> 
+                   <select 
+                     value={role}
+                     onChange={(e) => setRole(e.target.value)}
+                     className="bg-transparent text-white text-sm font-bold focus:outline-none cursor-pointer"
+                   >
+                     <option value="intern" className="bg-[#0F1F2E]">Intern</option>
+                     <option value="mentor" className="bg-[#0F1F2E]">Mentor</option>
+                     <option value="it_administrator" className="bg-[#0F1F2E]">IT Administrator</option>
+                   </select>
+                 </div>
+
                  <div className="flex items-center gap-2 bg-[#071420] border border-white/10 rounded-lg px-3 py-1.5 shadow-sm">
                    <Globe className="w-4 h-4 text-opti-lime" /> 
                    <select 
@@ -647,6 +685,20 @@ export default function VoiceCapturePage() {
              <div className="flex justify-between items-center mb-6">
                <h2 className="text-xl font-bold">Files Upload</h2>
                <div className="flex items-center gap-3">
+                 <div className="flex items-center gap-2 bg-[#071420] border border-white/10 rounded-lg px-3 py-1.5 shadow-sm">
+                   <User className="w-4 h-4 text-opti-lime" /> 
+                   <select 
+                     value={role}
+                     onChange={(e) => setRole(e.target.value)}
+                     disabled={isProcessingFile}
+                     className="bg-transparent text-white text-sm font-bold focus:outline-none cursor-pointer disabled:opacity-50"
+                   >
+                     <option value="intern" className="bg-[#0F1F2E]">Intern</option>
+                     <option value="mentor" className="bg-[#0F1F2E]">Mentor</option>
+                     <option value="it_administrator" className="bg-[#0F1F2E]">IT Administrator</option>
+                   </select>
+                 </div>
+
                  <div className="flex items-center gap-2 bg-[#071420] border border-white/10 rounded-lg px-3 py-1.5 shadow-sm">
                    <Globe className="w-4 h-4 text-opti-lime" /> 
                    <select 
@@ -828,7 +880,7 @@ export default function VoiceCapturePage() {
                 
                 <div>
                   <h3 className="text-sm font-bold text-gray-400 mb-3">Transcript</h3>
-                  <div className="bg-[#071420] border border-white/5 rounded-2xl p-5 text-gray-300 leading-relaxed text-base whitespace-pre-wrap">
+                  <div className="bg-[#071420] border border-white/5 rounded-2xl p-5 text-gray-300 leading-relaxed text-base">
                     {selectedRecord.textContent}
                   </div>
                 </div>

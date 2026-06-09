@@ -8,42 +8,23 @@ const Hero = () => {
   const [showJoinModal, setShowJoinModal] = useState(false);
 
   return (
-    <section className="container" style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingTop: '4rem',
-      paddingBottom: '6rem',
-      minHeight: '80vh'
-    }}>
+    <section className="container flex flex-col lg:flex-row items-center justify-between pt-16 pb-24 min-h-[80vh]">
       {/* Left Content */}
-      <div style={{ flex: 1, paddingRight: '2rem' }} className="animate-fade-in">
-        <div style={{ color: 'var(--accent-lime)', fontWeight: '500', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ width: '20px', height: '2px', backgroundColor: 'var(--accent-lime)' }}></span>
+      <div className="flex-1 pr-0 lg:pr-8 mb-12 lg:mb-0 animate-fade-in text-center lg:text-left">
+        <div className="text-opti-lime font-medium mb-4 flex items-center justify-center lg:justify-start gap-2">
+          <span className="w-5 h-0.5 bg-opti-lime"></span>
           Dynamic Work Intelligence
         </div>
         
-        <h1 style={{ 
-          fontSize: '4.5rem', 
-          lineHeight: '1.1', 
-          color: 'var(--text-white)', 
-          marginBottom: '1.5rem',
-          fontWeight: '600'
-        }}>
+        <h1 className="text-4xl md:text-5xl lg:text-7xl font-semibold leading-tight text-white mb-6">
           AI-Powered Personal Operating System
         </h1>
         
-        <p style={{ 
-          color: 'var(--text-gray)', 
-          fontSize: '1.1rem', 
-          lineHeight: '1.6', 
-          marginBottom: '2.5rem',
-          maxWidth: '500px'
-        }}>
+        <p className="text-gray-400 text-base md:text-lg leading-relaxed mb-10 max-w-[500px] mx-auto lg:mx-0">
           Automatically capture, organize, analyze, track, and monetize daily work activities across multiple organizations and projects.
         </p>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '3rem' }}>
+        <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6 mb-12">
           <Link href="/worksync" className="btn btn-lime">
             Let's Get Started <span style={{ marginLeft: '0.5rem' }}>↗</span>
           </Link>
@@ -66,9 +47,9 @@ const Hero = () => {
         </div>
 
         {/* Rating and Team */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4rem' }}>
-          <div>
-            <div style={{ display: 'flex', gap: '0.2rem', color: '#fbbf24', marginBottom: '0.5rem' }}>
+        <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-8 lg:gap-16">
+          <div className="text-center lg:text-left">
+            <div className="flex justify-center lg:justify-start gap-1 text-amber-400 mb-2">
               {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
               <span style={{ color: 'var(--text-gray)', fontSize: '0.9rem', marginLeft: '0.5rem' }}>(4.5/5)</span>
             </div>
@@ -107,7 +88,7 @@ const Hero = () => {
       </div>
 
       {/* Right Content - Phones Mockup */}
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', position: 'relative' }} className="animate-fade-in delay-200">
+      <div className="flex-1 flex justify-center relative animate-fade-in delay-200 mt-12 lg:mt-0 w-full">
          {/* Background Decorator */}
          <div style={{
            position: 'absolute',

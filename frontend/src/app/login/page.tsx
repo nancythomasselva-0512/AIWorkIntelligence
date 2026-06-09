@@ -22,34 +22,46 @@ export default function LoginPage() {
     setError('');
     setSuccess('');
 
-    try {
+    // Mock authentication for UI testing without requiring the backend server
+    setTimeout(() => {
+      const storedUsers = JSON.parse(localStorage.getItem('mock_users') || '{}');
+
       if (isLogin) {
-        const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
-        localStorage.setItem('token', res.data.access_token);
-        localStorage.setItem('user', JSON.stringify(res.data.user));
-        if (res.data.user.role === 'it_administrator') {
-          router.push('/dashboard/admin');
+        const storedUser = storedUsers[email] || { role: 'intern', name: fullName || email.split('@')[0] };
+        localStorage.setItem('token', 'mock-token-for-ui-testing');
+        localStorage.setItem('user', JSON.stringify({ email, role: storedUser.role, name: storedUser.name }));
+        if (email.includes('admin') || storedUser.role === 'it_administrator') {
+          router.push('/admin');
         } else {
-          router.push('/dashboard/intelligence/voice-capture');
+          router.push('/worksync');
         }
       } else {
-        await axios.post('http://localhost:5000/api/auth/register', { email, password, full_name: fullName, role });
+        storedUsers[email] = { role, name: fullName };
+        localStorage.setItem('mock_users', JSON.stringify(storedUsers));
         setIsLogin(true);
         setSuccess('Account created successfully! Please sign in.');
-        setPassword(''); // Clear password for safety
+        setPassword('');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Authentication failed. Please try again.');
-    } finally {
       setIsLoading(false);
-    }
+    }, 800);
   };
 
   return (
-    <div className="min-h-screen bg-[#0F1F2E] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-inter text-white relative">
-      <Link href="/" className="absolute top-8 left-8 text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-semibold">
-        <ArrowLeft className="w-4 h-4" /> Back to Home
-      </Link>
+    <>
+      <style dangerouslySetInnerHTML={{__html: `
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px #0F1F2E inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+      `}} />
+      <div className="min-h-screen bg-[#0F1F2E] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-inter text-white relative">
+        <Link href="/" className="absolute top-8 left-8 text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-semibold">
+          <ArrowLeft className="w-4 h-4" /> Back to Home
+        </Link>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
         <div className="w-16 h-16 bg-[#071420] border border-white/10 rounded-2xl flex items-center justify-center mb-6 shadow-xl">
@@ -108,6 +120,7 @@ export default function LoginPage() {
                 <input
                   type="email"
                   required
+                  autoComplete="off"
                   className="bg-[#0F1F2E] border border-white/10 text-white block w-full pl-10 sm:text-sm rounded-lg focus:ring-opti-lime focus:border-opti-lime py-3"
                   placeholder="you@company.com"
                   value={email}
@@ -125,6 +138,7 @@ export default function LoginPage() {
                 <input
                   type="password"
                   required
+                  autoComplete="new-password"
                   className="bg-[#0F1F2E] border border-white/10 text-white block w-full pl-10 sm:text-sm rounded-lg focus:ring-opti-lime focus:border-opti-lime py-3"
                   placeholder="••••••••"
                   value={password}
@@ -161,5 +175,6 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

@@ -24,7 +24,7 @@ const About = () => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginTop: '-1.5rem', marginBottom: '-1rem' }}>
             <img 
               src="/logo.jpeg" 
               alt="Tekquora Logo" 
@@ -33,11 +33,24 @@ const About = () => {
                 height: '120px', 
                 objectFit: 'contain', 
                 mixBlendMode: 'multiply',
-                filter: 'brightness(1.08) contrast(1.2)' 
+                filter: 'brightness(1.08) contrast(1.2)',
+                marginLeft: '-1rem'
               }} 
             />
-            <h2 style={{ fontSize: '3.2rem', lineHeight: '1.2', color: '#1C3E2F', fontWeight: '800', letterSpacing: '-1px', margin: 0, marginLeft: '-2.5rem' }}>
-              Tekquora
+            <h2 style={{ 
+              fontSize: '3.2rem', 
+              lineHeight: '1.2', 
+              fontWeight: '800', 
+              letterSpacing: '-1px', 
+              margin: 0,
+              marginLeft: '-1.5rem',
+              background: 'linear-gradient(to right, #3b82f6, #9333ea)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              color: 'transparent'
+            }}>
+              TekQuora
             </h2>
           </div>
 
@@ -51,6 +64,7 @@ const About = () => {
               src="https://images.unsplash.com/photo-1556761175-4b46a572b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
               alt="Team meeting" 
               style={{ width: '100%', height: 'auto', display: 'block' }} 
+              className="transition-transform duration-500 hover:scale-105 cursor-pointer"
             />
           </div>
           
@@ -69,25 +83,23 @@ const About = () => {
                <h4 style={{ fontWeight: '800', color: '#0f172a' }}>Company Vision</h4>
              </div>
              <p style={{ fontSize: '0.85rem', color: '#475569', lineHeight: '1.5' }}>
-               To be the ultimate AI-powered platform for IT Administrators and Innovation Consultants.
+               Inventing the Intelligent Future by bridging the gap between cutting-edge technology and business success.
              </p>
           </div>
         </div>
 
         {/* Right Side: Content */}
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, marginTop: '120px' }}>
           <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem' }}>
              <div>
                <p style={{ color: '#334155', fontSize: '1.05rem', lineHeight: '1.8', marginBottom: '1.25rem' }}>
                  Tekquora is a technology-driven innovation company operating from MRF Innovation Park, Chennai. We specialize in software development, AI-powered solutions, IT administration, research support, and digital transformation services.
                </p>
-               <p style={{ color: '#334155', fontSize: '1.05rem', lineHeight: '1.8', marginBottom: '1.25rem' }}>
-                 Our team consists of experienced developers, mentors, engineers, researchers, and interns working collaboratively to build innovative products and enterprise-grade solutions. We believe in combining technology, innovation, and practical industry expertise to create impactful digital solutions for businesses, educational institutions, startups, and research organizations.
-               </p>
+
                <div style={{ backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '12px', borderLeft: '4px solid var(--accent-lime)' }}>
-                 <p style={{ color: '#0f172a', fontSize: '1.05rem', lineHeight: '1.8', fontWeight: '600', margin: 0 }}>
-                   Our mission is to empower organizations with smart technology solutions while nurturing the next generation of innovators and technology leaders.
-                 </p>
+                  <p style={{ color: '#0f172a', fontSize: '1.05rem', lineHeight: '1.8', fontWeight: '600', margin: 0 }}>
+                    Our mission is to empower businesses with innovative, AI-driven solutions that anticipate future opportunities rather than just addressing current challenges.
+                  </p>
                </div>
              </div>
           </div>
@@ -108,9 +120,9 @@ const About = () => {
                 Join us to achieve zero-touch administration and scale your digital transformation.
               </span>
             </div>
-            <button className="btn btn-lime" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
+            <a href="https://www.tekquora.com/" target="_blank" rel="noopener noreferrer" className="btn btn-lime" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem', textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}>
               Learn More →
-            </button>
+            </a>
           </div>
         </div>
 

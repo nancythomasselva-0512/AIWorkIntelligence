@@ -5,16 +5,10 @@ import Link from 'next/link';
 
 const ConsultingCards = () => {
   return (
-    <div className="container" style={{ display: 'flex', gap: '1rem', height: '180px' }}>
+    <div className="container flex flex-col md:flex-row gap-4 h-auto md:h-[180px]">
       
       {/* Video Thumbnail Card */}
-      <div style={{
-        flex: 1.5,
-        borderRadius: '20px',
-        overflow: 'hidden',
-        position: 'relative',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
-      }} className="animate-fade-in delay-300">
+      <div className="flex-[1.5] rounded-[20px] overflow-hidden relative shadow-xl animate-fade-in delay-300 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl cursor-pointer min-h-[180px]">
         <div style={{
           position: 'absolute',
           top: 0, left: 0, right: 0, bottom: 0,
@@ -39,18 +33,10 @@ const ConsultingCards = () => {
       </div>
 
       {/* Info Cards */}
-      <div style={{
-        flex: 3,
-        backgroundColor: 'var(--bg-card)',
-        borderRadius: '20px',
-        display: 'flex',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
-        border: '1px solid var(--border-color)',
-        overflow: 'hidden'
-      }} className="animate-fade-in delay-300">
+      <div className="flex-[3] bg-[var(--bg-card)] rounded-[20px] flex flex-col md:flex-row shadow-xl border border-[var(--border-color)] overflow-hidden animate-fade-in delay-300 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
         
         {/* Card 1 */}
-        <div style={{ flex: 1, padding: '2rem', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div className="flex-1 p-6 border-b md:border-b-0 md:border-r border-[var(--border-color)] flex flex-col justify-center">
            <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid var(--accent-lime)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-lime)', marginBottom: '1rem' }}>
              <Target size={20} />
            </div>
@@ -59,7 +45,7 @@ const ConsultingCards = () => {
         </div>
 
         {/* Card 2 */}
-        <div style={{ flex: 1, padding: '2rem', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div className="flex-1 p-6 border-b md:border-b-0 md:border-r border-[var(--border-color)] flex flex-col justify-center">
            <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid var(--accent-lime)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-lime)', marginBottom: '1rem' }}>
              <Lightbulb size={20} />
            </div>
@@ -68,7 +54,7 @@ const ConsultingCards = () => {
         </div>
 
         {/* Card 3 */}
-        <div style={{ flex: 1, padding: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div className="flex-1 p-6 flex flex-col justify-center">
            <div style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid var(--accent-lime)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-lime)', marginBottom: '1rem' }}>
              <PieChart size={20} />
            </div>

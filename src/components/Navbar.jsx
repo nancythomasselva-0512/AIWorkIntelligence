@@ -8,7 +8,9 @@ const Navbar = () => {
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: '1.5rem 0',
-      color: 'var(--text-white)'
+      color: 'var(--text-white)',
+      position: 'relative',
+      zIndex: 100
     }} className="container animate-fade-in">
       
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.5rem', fontWeight: 'bold' }}>

@@ -3,63 +3,57 @@ import { Target, CheckCircle, Leaf } from 'lucide-react';
 
 const About = () => {
   return (
-    <section className="section-padding container">
-      <div style={{ display: 'flex', gap: '4rem', alignItems: 'center', marginBottom: '6rem' }}>
+    <section className="container" style={{ paddingTop: '2rem', paddingBottom: '3rem' }}>
+      <div className="text-center max-w-3xl mx-auto mb-2">
+        <h2 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#000000' }}>
+          About <span style={{ color: 'var(--accent-lime)' }}>Us</span>
+        </h2>
+      </div>
+
+      <div className="flex flex-col lg:flex-row" style={{ gap: '4rem', alignItems: 'center', marginBottom: '6rem' }}>
         
         {/* Left Side: Images */}
-        <div style={{ flex: 1, position: 'relative' }}>
-          <div style={{ 
-            borderRadius: '20px', 
-            overflow: 'hidden',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            border: '8px solid #ffffff'
-          }}>
-            <img 
-              src="https://images.unsplash.com/photo-1556761175-4b46a572b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-              alt="Team meeting" 
-              style={{ width: '100%', height: 'auto', display: 'block' }} 
-            />
-          </div>
-          
-          {/* Mission/Vision Box overlaying the image */}
-          <div style={{
-            position: 'absolute',
-            bottom: '-40px',
-            left: '-20px',
-            backgroundColor: '#ffffff',
-            padding: '1.5rem',
-            borderRadius: '15px',
-            boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
-            maxWidth: '250px'
-          }}>
-             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-               <Target color="var(--accent-lime)" size={24} />
-               <h4 style={{ fontWeight: 'bold' }}>Company Vision</h4>
-             </div>
-             <p style={{ fontSize: '0.8rem', color: 'var(--text-dark-muted)' }}>
-               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus.
-             </p>
+        <div style={{ flex: 1 }}>
+          <div style={{ position: 'relative' }}>
+            <div style={{ 
+              borderRadius: '20px', 
+              overflow: 'hidden',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              border: '8px solid #ffffff'
+            }}>
+              <img 
+                src="https://images.unsplash.com/photo-1556761175-4b46a572b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                alt="Team meeting" 
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+                className="transition-transform duration-500 hover:scale-105 cursor-pointer"
+              />
+            </div>
+            
+            {/* Mission/Vision Box overlaying the image */}
+            <div className="company-vision-box" style={{
+              position: 'absolute',
+              bottom: '-30px',
+              left: '1.5rem',
+              backgroundColor: '#ffffff',
+              padding: '1.5rem',
+              borderRadius: '15px',
+              boxShadow: '0 10px 30px -5px rgba(0,0,0,0.15)',
+              maxWidth: '260px',
+              zIndex: 10
+            }}>
+               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                 <Target color="var(--accent-lime)" size={24} />
+                 <h4 style={{ fontWeight: 'bold' }}>Company Vision</h4>
+               </div>
+               <p style={{ fontSize: '0.8rem', color: 'var(--text-dark-muted)' }}>
+                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus.
+               </p>
+            </div>
           </div>
         </div>
 
         {/* Right Side: Content */}
-        <div style={{ flex: 1 }}>
-          <div style={{ 
-            display: 'inline-block', 
-            padding: '0.4rem 1rem', 
-            backgroundColor: 'rgba(196,240,63,0.2)', 
-            color: '#65a30d', 
-            borderRadius: '50px',
-            fontSize: '0.85rem',
-            fontWeight: '600',
-            marginBottom: '1rem'
-          }}>
-            About Us
-          </div>
-
-          <h2 style={{ fontSize: '3rem', lineHeight: '1.2', marginBottom: '2rem', color: 'var(--text-dark)' }}>
-            The Best Finance Consultant In Town
-          </h2>
+        <div className="mt-8 lg:mt-0" style={{ flex: 1 }}>
 
           <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem' }}>
              <Leaf color="var(--accent-lime)" size={40} style={{ flexShrink: 0 }} />
@@ -96,38 +90,36 @@ const About = () => {
       </div>
 
       {/* Stats Section */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between',
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8" style={{ 
         borderTop: '1px solid #e2e8f0',
         paddingTop: '3rem'
       }}>
-        <div>
-          <div style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--text-dark)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }}>
-            25 <span style={{ color: 'var(--accent-lime)', marginLeft: '4px' }}>+</span>
+        <div className="group flex flex-col items-center text-center transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '2rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+          <div style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--text-dark)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            25 <span className="transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" style={{ color: 'var(--accent-lime)', marginLeft: '4px', display: 'inline-block' }}>+</span>
           </div>
-          <p style={{ color: 'var(--text-dark-muted)', fontSize: '0.85rem', maxWidth: '150px' }}>A legacy of expertise spanning 25+ years.</p>
+          <p style={{ color: 'var(--text-dark-muted)', fontSize: '0.85rem', maxWidth: '180px', margin: '0 auto', textAlign: 'justify' }}>A legacy of expertise spanning 25+ years.</p>
         </div>
         
-        <div>
-          <div style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--text-dark)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }}>
-            150K <span style={{ color: 'var(--accent-lime)', marginLeft: '4px' }}>+</span>
+        <div className="group flex flex-col items-center text-center transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '2rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+          <div style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--text-dark)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            150K <span className="transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" style={{ color: 'var(--accent-lime)', marginLeft: '4px', display: 'inline-block' }}>+</span>
           </div>
-          <p style={{ color: 'var(--text-dark-muted)', fontSize: '0.85rem', maxWidth: '150px' }}>Where ideas flourish and projects thrive.</p>
+          <p style={{ color: 'var(--text-dark-muted)', fontSize: '0.85rem', maxWidth: '180px', margin: '0 auto', textAlign: 'justify' }}>Where ideas flourish and projects thrive.</p>
         </div>
 
-        <div>
-          <div style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--text-dark)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }}>
+        <div className="group flex flex-col items-center text-center transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '2rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+          <div className="transition-transform duration-300 group-hover:scale-110" style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--text-dark)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             98%
           </div>
-          <p style={{ color: 'var(--text-dark-muted)', fontSize: '0.85rem', maxWidth: '150px' }}>Striving for customer satisfaction is top priority.</p>
+          <p style={{ color: 'var(--text-dark-muted)', fontSize: '0.85rem', maxWidth: '180px', margin: '0 auto', textAlign: 'justify' }}>Striving for customer satisfaction is top priority.</p>
         </div>
 
-        <div>
-          <div style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--text-dark)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }}>
-            $40M <span style={{ color: 'var(--accent-lime)', marginLeft: '4px' }}>+</span>
+        <div className="group flex flex-col items-center text-center transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '2rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+          <div style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'var(--text-dark)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            $40M <span className="transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" style={{ color: 'var(--accent-lime)', marginLeft: '4px', display: 'inline-block' }}>+</span>
           </div>
-          <p style={{ color: 'var(--text-dark-muted)', fontSize: '0.85rem', maxWidth: '150px' }}>This is our pure benefit to our clients.</p>
+          <p style={{ color: 'var(--text-dark-muted)', fontSize: '0.85rem', maxWidth: '180px', margin: '0 auto', textAlign: 'justify' }}>This is our pure benefit to our clients.</p>
         </div>
       </div>
     </section>

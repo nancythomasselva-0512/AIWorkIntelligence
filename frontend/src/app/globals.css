@@ -175,3 +175,98 @@ h1, h2, h3, h4, h5, h6 {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(199, 242, 58, 0.5);
 }
+
+/* Tabs Horizontal Scroll indicator */
+.tabs-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+.tabs-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+.tabs-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--accent-color, #C7F23A);
+  border-radius: 10px;
+}
+.tabs-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color, #C7F23A) rgba(255, 255, 255, 0.05);
+  padding-bottom: 10px !important;
+}
+
+/* -------------------------------------
+   Mobile Responsiveness Overrides
+-------------------------------------- */
+@media (max-width: 768px) {
+  /* Prevent horizontal scroll */
+  html, body {
+    overflow-x: hidden !important;
+    width: 100%;
+  }
+
+  /* Optimize section spacing */
+  .section-padding {
+    padding: 3.5rem 0 !important;
+  }
+
+  /* Container padding */
+  .container {
+    padding: 0 1.25rem !important;
+  }
+
+  /* Mockup component scaling */
+  .mockup-wrapper {
+    transform: scale(0.8);
+    transform-origin: center top;
+    height: 480px !important;
+    margin: 0 auto;
+  }
+
+  /* About company vision overlay card positioning */
+  .company-vision-box {
+    position: relative !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    margin: 1.5rem auto 0 auto !important;
+    max-width: 100% !important;
+    box-shadow: 0 5px 15px -3px rgba(0,0,0,0.1) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Tighten mockup scaling for smaller phones */
+  .mockup-wrapper {
+    transform: scale(0.65);
+    transform-origin: center top;
+    height: 395px !important;
+  }
+
+  /* Contact Cards padding/font reduction to prevent overflow */
+  .contact-info-card {
+    padding: 1.25rem !important;
+    gap: 1rem !important;
+    border-radius: 1rem !important;
+  }
+  .contact-info-icon {
+    width: 3.2rem !important;
+    height: 3.2rem !important;
+    border-radius: 0.75rem !important;
+  }
+  .contact-info-icon svg {
+    width: 22px !important;
+    height: 22px !important;
+  }
+  .contact-info-text {
+    font-size: 0.9rem !important;
+    word-break: break-all !important;
+  }
+}
+
+@media (max-width: 360px) {
+  /* Scale mockup for narrow screens like iPhone SE */
+  .mockup-wrapper {
+    transform: scale(0.55);
+    transform-origin: center top;
+    height: 330px !important;
+  }
+}

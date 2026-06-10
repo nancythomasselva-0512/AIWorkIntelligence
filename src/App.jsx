@@ -13,7 +13,7 @@ function App() {
       <div style={{
         background: 'linear-gradient(180deg, var(--bg-gradient-top) 0%, var(--bg-dark) 40%, var(--bg-gradient-bottom) 100%)',
         position: 'relative',
-        paddingBottom: '8rem'
+        paddingBottom: '12rem'
       }}>
         <Navbar />
         <Hero />
@@ -23,7 +23,7 @@ function App() {
       </div>
 
       {/* Main Content with white background */}
-      <main style={{ marginTop: '8rem' }}>
+      <main className="mt-8 md:mt-16">
         <About />
         <Services />
       </main>

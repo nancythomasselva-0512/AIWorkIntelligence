@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <div className="app-container" style={{ minHeight: '100vh', backgroundColor: '#ffffff' }}>
       {/* Hero Section with dark gradient background */}
-      <div id="home" className="relative pb-8 md:pb-32 bg-gradient-to-b from-[var(--bg-gradient-top)] via-[var(--bg-dark)] to-[var(--bg-gradient-bottom)]">
+      <div id="home" className="relative pb-8 md:pb-48 bg-gradient-to-b from-[var(--bg-gradient-top)] via-[var(--bg-dark)] to-[var(--bg-gradient-bottom)]">
         <Navbar />
         <FadeIn delay={0.1}>
           <Hero />
@@ -24,7 +24,7 @@ export default function Home() {
       </div>
 
       {/* Main Content with white background */}
-      <main className="mt-12 md:mt-16">
+      <main className="mt-4 md:mt-12">
         <div id="about">
           <FadeIn>
             <About />

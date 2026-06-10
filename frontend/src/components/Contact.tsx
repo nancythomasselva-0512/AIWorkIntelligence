@@ -4,7 +4,7 @@ import { Mail, MapPin, Phone, Send } from 'lucide-react';
 
 const Contact = () => {
   return (
-    <section id="contact" className="section-padding" style={{ backgroundColor: '#ffffff', color: '#000000', padding: '6rem 0' }}>
+    <section id="contact" className="py-8 md:py-16" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
       <div className="container mx-auto px-6">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>Contact <span style={{ color: 'var(--accent-lime)' }}>Us</span></h2>
@@ -16,33 +16,33 @@ const Contact = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
           {/* Contact Info */}
           <div className="space-y-8">
-            <div style={{ backgroundColor: '#f8f9fa', padding: '2rem', borderRadius: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-              <div style={{ width: '4rem', height: '4rem', backgroundColor: 'rgba(199, 242, 58, 0.2)', color: '#8baf15', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div className="contact-info-card" style={{ backgroundColor: '#f8f9fa', padding: '2rem', borderRadius: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+              <div className="contact-info-icon" style={{ width: '4rem', height: '4rem', backgroundColor: 'rgba(199, 242, 58, 0.2)', color: '#8baf15', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Mail size={28} />
               </div>
               <div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>Email</h3>
-                <p style={{ color: '#666' }}>nancythomasselva@gmail.com</p>
+                <p className="contact-info-text" style={{ color: '#666' }}>nancythomasselva@gmail.com</p>
               </div>
             </div>
 
-            <div style={{ backgroundColor: '#f8f9fa', padding: '2rem', borderRadius: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-              <div style={{ width: '4rem', height: '4rem', backgroundColor: 'rgba(176, 132, 255, 0.2)', color: '#B084FF', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div className="contact-info-card" style={{ backgroundColor: '#f8f9fa', padding: '2rem', borderRadius: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+              <div className="contact-info-icon" style={{ width: '4rem', height: '4rem', backgroundColor: 'rgba(176, 132, 255, 0.2)', color: '#B084FF', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Phone size={28} />
               </div>
               <div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>Phone</h3>
-                <p style={{ color: '#666' }}>+91 7904327211</p>
+                <p className="contact-info-text" style={{ color: '#666' }}>+91 7904327211</p>
               </div>
             </div>
 
-            <div style={{ backgroundColor: '#f8f9fa', padding: '2rem', borderRadius: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-              <div style={{ width: '4rem', height: '4rem', backgroundColor: 'rgba(96, 165, 250, 0.2)', color: '#60A5FA', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div className="contact-info-card" style={{ backgroundColor: '#f8f9fa', padding: '2rem', borderRadius: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+              <div className="contact-info-icon" style={{ width: '4rem', height: '4rem', backgroundColor: 'rgba(96, 165, 250, 0.2)', color: '#60A5FA', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <MapPin size={28} />
               </div>
               <div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>Office</h3>
-                <p style={{ color: '#666' }}>MCC MRF INNOVATION PARK, Madras christian college East tambaram 600059</p>
+                <p className="contact-info-text" style={{ color: '#666' }}>MCC MRF INNOVATION PARK, Madras christian college East tambaram 600059</p>
               </div>
             </div>
           </div>

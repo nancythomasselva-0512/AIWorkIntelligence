@@ -30,7 +30,7 @@ const Mockup = () => {
   };
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '600px', zIndex: 5 }}>
+    <div className="mockup-wrapper mx-auto" style={{ position: 'relative', width: '320px', height: '600px', zIndex: 5 }}>
       {/* Back Phone */}
       <div style={{
         ...phoneStyle,

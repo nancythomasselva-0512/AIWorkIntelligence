@@ -13,7 +13,8 @@ const Navbar = () => {
       justifyContent: 'space-between',
       padding: '1.5rem 0',
       color: 'var(--text-white)',
-      position: 'relative'
+      position: 'relative',
+      zIndex: 100
     }} className="container animate-fade-in px-4 md:px-0">
       
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.5rem', fontWeight: 'bold', zIndex: 60 }}>
@@ -55,14 +56,32 @@ const Navbar = () => {
         {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
       </button>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Popup */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 bg-[#071420] z-50 flex flex-col items-center justify-center gap-8 lg:hidden animate-in fade-in duration-200">
-          <Link href="#home" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-bold text-white">Home</Link>
-          <Link href="#about" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-bold text-white">About Us</Link>
-          <Link href="#services" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-bold text-white">Services</Link>
-          <Link href="/worksync" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-bold text-white">WorkSync App</Link>
-          <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-bold text-opti-lime">Login / Signup</Link>
+        <div 
+          className="lg:hidden animate-in fade-in slide-in-from-top-2 duration-200"
+          style={{ 
+            position: 'absolute', 
+            top: '100%', 
+            right: '1rem', 
+            backgroundColor: '#071420', 
+            border: '1px solid rgba(255,255,255,0.1)', 
+            borderRadius: '1.5rem', 
+            padding: '1.5rem', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '1.25rem', 
+            width: '220px', 
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', 
+            zIndex: 9999 
+          }}
+        >
+          <Link href="#home" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#ffffff', textDecoration: 'none', fontWeight: '600', fontSize: '1rem' }} className="hover:text-opti-lime transition-colors">Home</Link>
+          <Link href="#about" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#ffffff', textDecoration: 'none', fontWeight: '600', fontSize: '1rem' }} className="hover:text-opti-lime transition-colors">About Us</Link>
+          <Link href="#services" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#ffffff', textDecoration: 'none', fontWeight: '600', fontSize: '1rem' }} className="hover:text-opti-lime transition-colors">Services</Link>
+          <Link href="/worksync" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#ffffff', textDecoration: 'none', fontWeight: '600', fontSize: '1rem' }} className="hover:text-opti-lime transition-colors">WorkSync App</Link>
+          <hr style={{ border: '0', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '0.25rem 0' }} />
+          <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} style={{ color: 'var(--accent-lime)', textDecoration: 'none', fontWeight: '700', fontSize: '1rem' }} className="hover:opacity-80 transition-opacity">Login / Signup</Link>
         </div>
       )}
 

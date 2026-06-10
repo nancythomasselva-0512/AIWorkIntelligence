@@ -22,28 +22,118 @@ export default function LoginPage() {
     setError('');
     setSuccess('');
 
-    // Mock authentication for UI testing without requiring the backend server
-    setTimeout(() => {
-      const storedUsers = JSON.parse(localStorage.getItem('mock_users') || '{}');
-
-      if (isLogin) {
-        const storedUser = storedUsers[email] || { role: 'intern', name: fullName || email.split('@')[0] };
-        localStorage.setItem('token', 'mock-token-for-ui-testing');
-        localStorage.setItem('user', JSON.stringify({ email, role: storedUser.role, name: storedUser.name }));
-        if (email.includes('admin') || storedUser.role === 'it_administrator') {
-          router.push('/admin');
-        } else {
-          router.push('/worksync');
+    if (isLogin) {
+      // 1. Try real backend login
+      try {
+        const response = await axios.post('http://localhost:5000/api/auth/login', {
+          email,
+          password
+        });
+        
+        const { access_token, user } = response.data;
+        localStorage.setItem('token', access_token);
+        localStorage.setItem('user', JSON.stringify({
+          email: user.email,
+          role: user.role,
+          name: user.full_name || user.email.split('@')[0]
+        }));
+        
+        setSuccess('Logged in successfully!');
+        
+        setTimeout(() => {
+          if (user.role === 'it_administrator' || user.email.includes('admin')) {
+            router.push('/admin');
+          } else {
+            router.push('/worksync');
+          }
+          setIsLoading(false);
+        }, 500);
+        return;
+      } catch (err: any) {
+        // If it is a clear validation error/unauthorized (e.g. invalid password), show error and do not fall back to mock
+        if (err.response && (err.response.status === 401 || err.response.status === 400)) {
+          setError(err.response.data?.message || 'Invalid credentials');
+          setIsLoading(false);
+          return;
         }
-      } else {
+        console.warn('Backend offline or error, falling back to mock authentication', err);
+      }
+
+      // 2. Mock Fallback
+      setTimeout(() => {
+        const storedUsers = JSON.parse(localStorage.getItem('mock_users') || '{}');
+        
+        // Seed default administrator if credentials match and user is not registered
+        let storedUser = storedUsers[email];
+        if (!storedUser && email === 'admin@gmail.com' && password === 'admin@123') {
+          storedUser = { role: 'it_administrator', name: 'IT Administrator' };
+        }
+
+        if (storedUser) {
+          localStorage.setItem('token', 'mock-token-for-ui-testing');
+          localStorage.setItem('user', JSON.stringify({ email, role: storedUser.role, name: storedUser.name }));
+          setSuccess('Logged in successfully (Mock)!');
+          setTimeout(() => {
+            if (email.includes('admin') || storedUser.role === 'it_administrator') {
+              router.push('/admin');
+            } else {
+              router.push('/worksync');
+            }
+            setIsLoading(false);
+          }, 500);
+        } else {
+          // Allow any default user login if no mock user exists
+          const name = email.split('@')[0];
+          const calculatedRole = email.includes('admin') ? 'it_administrator' : 'intern';
+          localStorage.setItem('token', 'mock-token-for-ui-testing');
+          localStorage.setItem('user', JSON.stringify({ email, role: calculatedRole, name }));
+          setSuccess('Logged in successfully (Mock)!');
+          setTimeout(() => {
+            if (calculatedRole === 'it_administrator') {
+              router.push('/admin');
+            } else {
+              router.push('/worksync');
+            }
+            setIsLoading(false);
+          }, 500);
+        }
+      }, 500);
+
+    } else {
+      // Try real backend registration
+      try {
+        await axios.post('http://localhost:5000/api/auth/register', {
+          email,
+          password,
+          full_name: fullName,
+          role
+        });
+        
+        setSuccess('Account created successfully! Please sign in.');
+        setIsLogin(true);
+        setPassword('');
+        setIsLoading(false);
+        return;
+      } catch (err: any) {
+        if (err.response && (err.response.status === 409 || err.response.status === 400)) {
+          setError(err.response.data?.message || 'Email already exists or invalid registration data');
+          setIsLoading(false);
+          return;
+        }
+        console.warn('Backend offline or error, falling back to mock registration', err);
+      }
+
+      // Mock Fallback registration
+      setTimeout(() => {
+        const storedUsers = JSON.parse(localStorage.getItem('mock_users') || '{}');
         storedUsers[email] = { role, name: fullName };
         localStorage.setItem('mock_users', JSON.stringify(storedUsers));
         setIsLogin(true);
-        setSuccess('Account created successfully! Please sign in.');
+        setSuccess('Account created successfully (Mock)! Please sign in.');
         setPassword('');
-      }
-      setIsLoading(false);
-    }, 800);
+        setIsLoading(false);
+      }, 500);
+    }
   };
 
   return (
@@ -58,28 +148,27 @@ export default function LoginPage() {
             transition: background-color 5000s ease-in-out 0s;
         }
       `}} />
-      <div className="min-h-screen bg-[#0F1F2E] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-inter text-white relative">
+      <div className="min-h-screen bg-[#0F1F2E] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-inter text-white relative">
         <Link href="/" className="absolute top-8 left-8 text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-semibold">
           <ArrowLeft className="w-4 h-4" /> Back to Home
         </Link>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
-        <div className="w-16 h-16 bg-[#071420] border border-white/10 rounded-2xl flex items-center justify-center mb-6 shadow-xl">
-          <Hexagon className="text-opti-lime w-10 h-10" />
-        </div>
-        <h2 className="text-center text-3xl font-extrabold text-white">
-          {isLogin ? 'Sign in to your account' : 'Create a new account'}
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-400">
-          {isLogin ? 'Or ' : 'Already have an account? '}
-          <button onClick={() => { setIsLogin(!isLogin); setError(''); setSuccess(''); }} className="font-medium text-opti-lime hover:text-opti-lime-hover">
-            {isLogin ? 'register a new workspace' : 'sign in here'}
-          </button>
-        </p>
-      </div>
+        <div className="mx-auto w-full sm:max-w-[390px] bg-[#071420] py-8 px-5 sm:px-8 rounded-3xl border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)]">
+          <div className="flex flex-col items-center mb-6">
+            <div className="w-12 h-12 bg-[#0F1F2E] border border-white/10 rounded-xl flex items-center justify-center mb-4 shadow-xl">
+              <Hexagon className="text-opti-lime w-7 h-7" />
+            </div>
+            <h2 className="text-center text-2xl font-bold text-white">
+              {isLogin ? 'Sign in to your account' : 'Create a new account'}
+            </h2>
+            <p className="mt-1.5 text-center text-xs text-gray-400">
+              {isLogin ? 'Or ' : 'Already have an account? '}
+              <button onClick={() => { setIsLogin(!isLogin); setError(''); setSuccess(''); }} className="font-semibold text-opti-lime hover:text-opti-lime-hover transition-colors">
+                {isLogin ? 'register a new workspace' : 'sign in here'}
+              </button>
+            </p>
+          </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-[#071420] py-8 px-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] sm:rounded-3xl sm:px-10 border border-white/10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-lg text-sm text-center">
@@ -174,7 +263,6 @@ export default function LoginPage() {
           </form>
         </div>
       </div>
-    </div>
     </>
   );
 }

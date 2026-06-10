@@ -6,37 +6,17 @@ const Services = () => {
     <section className="section-padding container" style={{ backgroundColor: '#f8fafc', borderRadius: '30px', marginBottom: '4rem' }}>
       
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
-        <div style={{ maxWidth: '600px' }}>
-          <div style={{ 
-            display: 'inline-block', 
-            padding: '0.4rem 1rem', 
-            backgroundColor: 'rgba(196,240,63,0.2)', 
-            color: '#65a30d', 
-            borderRadius: '50px',
-            fontSize: '0.85rem',
-            fontWeight: '600',
-            marginBottom: '1rem'
-          }}>
-            Our Services
-          </div>
-          <h2 style={{ fontSize: '3rem', lineHeight: '1.2', color: 'var(--text-dark)' }}>
-            Financial Services To Grow And Secure Your Wealth
-          </h2>
-        </div>
-        
-        <div style={{ maxWidth: '400px', textAlign: 'right' }}>
-           <p style={{ color: 'var(--text-dark-muted)', marginBottom: '1.5rem', textAlign: 'left' }}>
-             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis.
-           </p>
-           <button className="btn btn-lime">
-             Learn More →
-           </button>
-        </div>
+      <div className="text-center max-w-3xl mx-auto mb-16">
+        <h2 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1rem', color: '#000000' }}>
+          Our <span style={{ color: 'var(--accent-lime)' }}>Services</span>
+        </h2>
+        <p style={{ color: 'var(--text-dark-muted)', fontSize: '1.1rem' }}>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis.
+        </p>
       </div>
 
       {/* Service Cards */}
-      <div style={{ display: 'flex', gap: '2rem' }}>
+      <div className="flex flex-col md:flex-row" style={{ gap: '2rem' }}>
         
         {/* Card 1 */}
         <div style={{ flex: 1, backgroundColor: '#ffffff', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>

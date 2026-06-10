@@ -541,7 +541,7 @@ export default function VoiceCapturePage() {
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const visualizerBars = Array.from({ length: 40 }).map((_, i) => {
+  const visualizerBars = Array.from({ length: 24 }).map((_, i) => {
     const height = (isRecording && !isPaused) ? Math.random() * 100 : 10;
     return <div key={i} className={`w-1 bg-opti-lime/80 rounded-full transition-all duration-75`} style={{ height: `${height}%` }}></div>
   });
@@ -572,7 +572,7 @@ export default function VoiceCapturePage() {
   };
 
   return (
-    <div className="h-screen bg-[#071420] text-white font-inter flex flex-col overflow-hidden">
+    <div className="min-h-screen xl:h-screen bg-[#071420] text-white font-inter flex flex-col overflow-y-auto xl:overflow-hidden">
       
       {/* Profile Modal */}
       <AnimatePresence>
@@ -673,7 +673,7 @@ export default function VoiceCapturePage() {
       </header>
 
       <div className="px-4 md:px-8 mt-6">
-        <div className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden items-center gap-2 border-b border-white/10 pb-4">
+        <div className="flex overflow-x-auto tabs-scrollbar items-center gap-2 border-b border-white/10 pb-3">
           <button 
             onClick={() => setActiveTab('voice')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'voice' ? 'bg-opti-lime text-[#071420]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
@@ -701,12 +701,12 @@ export default function VoiceCapturePage() {
         </div>
       </div>
 
-      <main className="flex-1 flex flex-col xl:flex-row p-8 gap-8 max-w-[1600px] mx-auto w-full min-h-0 overflow-hidden">
+      <main className="flex-1 flex flex-col xl:flex-row p-4 sm:p-8 gap-6 xl:gap-8 max-w-[1600px] mx-auto w-full min-h-0 overflow-visible xl:overflow-hidden">
         
         {activeTab === 'voice' && (
           <>
             {/* Left Side - Recording */}
-            <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col flex-1 shadow-2xl overflow-y-auto custom-scrollbar">
+            <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 shadow-2xl">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold">Record Your Voice</h2>
                 {isRecording && (
@@ -759,7 +759,7 @@ export default function VoiceCapturePage() {
             </div>
 
             {/* Right Side - Transcript */}
-            <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col flex-1 shadow-2xl">
+            <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 min-h-[350px] xl:min-h-0 shadow-2xl">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold flex items-center gap-3">
                   Live Transcription 
@@ -798,7 +798,7 @@ export default function VoiceCapturePage() {
         )}
 
         {activeTab === 'text' && (
-          <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col flex-1 shadow-2xl">
+          <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 min-h-[450px] xl:min-h-0 shadow-2xl">
              <div className="flex justify-between items-center mb-6">
                <h2 className="text-xl font-bold">Manual Text Input</h2>
                <div className="flex items-center gap-3">
@@ -847,7 +847,7 @@ export default function VoiceCapturePage() {
         )}
 
         {activeTab === 'files' && (
-          <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col flex-1 shadow-2xl">
+          <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 min-h-[400px] xl:min-h-0 shadow-2xl">
              <div className="flex justify-between items-center mb-6">
                <h2 className="text-xl font-bold">Files Upload</h2>
                <div className="flex items-center gap-3">
@@ -908,7 +908,7 @@ export default function VoiceCapturePage() {
         )}
 
         {activeTab === 'records' && (
-          <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col flex-1 shadow-2xl">
+          <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 min-h-[500px] xl:min-h-0 shadow-2xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">All Records (Worklogs)</h2>
               <div className="text-sm text-gray-500">Total Records: {recentLogs.length}</div>
@@ -921,26 +921,26 @@ export default function VoiceCapturePage() {
                 Object.keys(groupedLogs).map((date) => (
                   <div 
                     key={date} 
-                    className="col-span-full bg-[#071420] border border-white/5 rounded-2xl p-6 shadow-inner mb-2 cursor-pointer hover:border-opti-lime/30 transition-colors group"
+                    className="col-span-full bg-[#071420] border border-white/5 rounded-2xl p-4 sm:p-6 shadow-inner mb-2 cursor-pointer hover:border-opti-lime/30 transition-colors group"
                     onClick={() => handleFullDaySelect(date, groupedLogs[date])}
                   >
-                    <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
-                      <h3 className="text-opti-lime font-bold text-lg flex items-center gap-2">
+                    <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3 gap-2">
+                      <h3 className="text-opti-lime font-bold text-sm sm:text-base md:text-lg flex items-center gap-1.5 sm:gap-2 min-w-0 truncate">
                         {date.includes('|') ? (
                           <>
-                            <Calendar size={18} /> {date.split('|')[0]}
-                            <span className="text-opti-lime/50 mx-2">•</span> {date.split('|')[1]}
+                            <Calendar className="w-4.5 h-4.5 sm:w-5 sm:h-5 shrink-0" /> <span className="truncate">{date.split('|')[0]}</span>
+                            <span className="text-opti-lime/50 mx-1 sm:mx-2 shrink-0">•</span> <span className="truncate">{date.split('|')[1]}</span>
                           </>
                         ) : (
-                          <><Hexagon size={18} /> {date}</>
+                          <><Hexagon className="w-4.5 h-4.5 sm:w-5 sm:h-5 shrink-0" /> <span className="truncate">{date}</span></>
                         )}
                       </h3>
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleFullDaySelect(date, groupedLogs[date]); }}
-                        className="flex items-center gap-2 text-xs font-bold text-opti-lime bg-opti-lime/10 hover:bg-opti-lime hover:text-[#071420] px-3 py-1.5 rounded-lg transition-all duration-300 cursor-pointer shadow-[0_0_10px_rgba(199,242,58,0)] hover:shadow-[0_0_15px_rgba(199,242,58,0.4)] hover:scale-105 group-hover:bg-opti-lime group-hover:text-[#071420]"
+                        className="flex items-center gap-1.5 sm:gap-2 text-xs font-bold text-opti-lime bg-opti-lime/10 hover:bg-opti-lime hover:text-[#071420] px-2.5 sm:px-3 py-1.5 rounded-lg transition-all duration-300 cursor-pointer shrink-0 shadow-[0_0_10px_rgba(199,242,58,0)] hover:shadow-[0_0_15px_rgba(199,242,58,0.4)] hover:scale-105 group-hover:bg-opti-lime group-hover:text-[#071420]"
                         title="Download Full Day Record"
                       >
-                        <Download size={16} /> Download Day
+                        <Download size={14} className="sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Download Day</span>
                       </button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -949,9 +949,9 @@ export default function VoiceCapturePage() {
                           key={log.id || idx} 
                           className="flex flex-col gap-2 p-0 border-l-2 border-opti-lime/50 pl-4"
                         >
-                          <div className="flex items-center gap-2 mb-1">
-                            <div className="w-2 h-2 rounded-full bg-opti-lime"></div>
-                            <span className="text-sm font-bold text-opti-lime">
+                          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 min-w-0">
+                            <div className="w-1.5 h-1.5 rounded-full bg-opti-lime shrink-0"></div>
+                            <span className="text-xs sm:text-sm font-bold text-opti-lime whitespace-nowrap shrink-0">
                               {new Date(log.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                             </span>
                             <span className="text-gray-600 text-xs">•</span>
@@ -977,7 +977,7 @@ export default function VoiceCapturePage() {
 
         {/* Right Side Sidebar - Saved Records (Only show when not in full records view) */}
         {activeTab !== 'records' && (
-        <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col w-full xl:w-[450px] shrink-0 shadow-2xl min-h-0 overflow-y-auto custom-scrollbar">
+        <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col w-full xl:w-[450px] shrink-0 shadow-2xl xl:min-h-0 overflow-visible xl:overflow-y-auto custom-scrollbar">
           <h2 className="text-xl font-bold mb-6">Saved Records</h2>
           
           <div className="flex-1 space-y-6 pr-2 pb-4">
@@ -1018,8 +1018,8 @@ export default function VoiceCapturePage() {
                       >
                         <div className="absolute left-[-4px] top-2.5 w-2 h-2 rounded-full bg-opti-lime/50"></div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className="text-xs font-bold text-opti-lime">
+                           <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 min-w-0">
+                            <span className="text-xs font-bold text-opti-lime whitespace-nowrap shrink-0">
                               {new Date(log.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                             </span>
                             <span className="text-gray-600 text-[10px]">•</span>

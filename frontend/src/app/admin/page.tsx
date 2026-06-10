@@ -75,6 +75,21 @@ export default function AdminPage() {
   const [editUserForm, setEditUserForm] = useState({ name: '', email: '', role: 'employee' });
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user.role === 'it_administrator' || user.email.includes('admin')) {
+          setIsLoggedIn(true);
+        }
+      } catch (e) {
+        console.error('Error parsing user session in admin page', e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     if (isLoggedIn) {
       loadRecords();
       loadUsers();
@@ -107,7 +122,10 @@ export default function AdminPage() {
     e.preventDefault();
     setError('');
 
-    if (email === 'mrfadmin@gmail.com' && password === 'mrfadmin123') {
+    if (
+      (email === 'mrfadmin@gmail.com' && password === 'mrfadmin123') ||
+      (email === 'admin@gmail.com' && password === 'admin@123')
+    ) {
       setIsLoggedIn(true);
     } else {
       setError('Invalid admin credentials. Please try again.');
@@ -494,10 +512,10 @@ export default function AdminPage() {
                   ) : (
                     Object.keys(groupedLogs).map((date) => (
                       <div key={date} className="bg-[#071420] border border-white/5 rounded-2xl p-6 shadow-inner">
-                        <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-4">
-                          <h3 className="text-opti-lime font-bold flex items-center gap-2">
-                            <CalendarIcon size={18} /> {date.split('|')[0].trim()}
-                            <span className="text-opti-lime/50 mx-2">•</span> {date.split('|')[1].trim()}
+                        <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-4 gap-2">
+                          <h3 className="text-opti-lime font-bold text-sm sm:text-base md:text-lg flex items-center gap-1.5 sm:gap-2 min-w-0 truncate">
+                            <CalendarIcon className="w-4.5 h-4.5 sm:w-5 sm:h-5 shrink-0" /> <span className="truncate">{date.split('|')[0].trim()}</span>
+                            <span className="text-opti-lime/50 mx-1 sm:mx-2 shrink-0">•</span> <span className="truncate">{date.split('|')[1].trim()}</span>
                           </h3>
                         </div>
                         <div className="space-y-5">
@@ -526,9 +544,9 @@ export default function AdminPage() {
 
                                 {/* Content Column */}
                                 <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                    <span className="text-xs font-bold text-gray-400 flex items-center gap-1">
-                                      <Play size={10} className="text-opti-lime"/> {new Date(log.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                  <div className="flex items-center gap-1.5 sm:gap-2 mb-2 flex-wrap">
+                                    <span className="text-xs font-bold text-gray-400 flex items-center gap-1 whitespace-nowrap shrink-0">
+                                      <Play size={10} className="text-opti-lime shrink-0"/> {new Date(log.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                     </span>
                                     {log.category && (
                                       <>

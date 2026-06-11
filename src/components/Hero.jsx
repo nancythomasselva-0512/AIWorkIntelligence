@@ -4,7 +4,7 @@ import Mockup from './Mockup';
 
 const Hero = () => {
   return (
-    <section className="container flex flex-col lg:flex-row items-center justify-between pt-16 pb-12 lg:pb-24 min-h-0 lg:min-h-[85vh] gap-12">
+    <section className="container flex flex-col lg:flex-row items-center justify-between pt-16 pb-4 lg:pb-24 min-h-0 lg:min-h-[85vh] gap-12">
       {/* Phone Mockup Column (Desktop ONLY) */}
       <div className="hidden lg:flex order-2 animate-fade-in delay-200 w-[40%] flex-none" style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
          {/* Background Decorator */}
@@ -19,7 +19,7 @@ const Hero = () => {
            zIndex: 0
          }}></div>
          
-         <div className="h-[500px] lg:h-[360px] lg:overflow-hidden" style={{ position: 'relative', zIndex: 10, width: '100%', display: 'flex', justifyContent: 'center' }}>
+         <div className="h-[500px] lg:h-[500px]" style={{ position: 'relative', zIndex: 10, width: '100%', display: 'flex', justifyContent: 'center' }}>
            <div style={{ transform: 'scale(0.8)', transformOrigin: 'top center', width: '100%', display: 'flex', justifyContent: 'center' }}>
              <Mockup />
            </div>
@@ -83,7 +83,7 @@ const Hero = () => {
            </div>
 
            {/* Right side: Mockup on Mobile */}
-           <div className="flex lg:hidden justify-end w-[45%] h-[300px] sm:h-[370px] md:h-[420px] overflow-visible relative">
+           <div className="flex lg:hidden justify-end w-[45%] h-[150px] sm:h-[220px] md:h-[280px] overflow-visible relative">
               <div className="absolute -top-6 sm:-top-8 -right-8 scale-[0.55] sm:scale-[0.65] md:scale-[0.75] origin-top-right">
                  <Mockup />
               </div>

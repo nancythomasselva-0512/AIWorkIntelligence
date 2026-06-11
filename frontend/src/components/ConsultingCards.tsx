@@ -1,14 +1,19 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
 import { Target, Lightbulb, PieChart, PlayCircle } from 'lucide-react';
-import Link from 'next/link';
+import WorkSyncModal from './WorkSyncModal';
 
 const ConsultingCards = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div className="container flex flex-col md:flex-row gap-4 h-auto md:h-[180px]">
       
       {/* Video Thumbnail Card */}
-      <div className="flex-[1.5] rounded-[20px] overflow-hidden relative shadow-xl animate-fade-in delay-300 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl cursor-pointer min-h-[180px]">
+      <div 
+        onClick={() => setIsModalOpen(true)}
+        className="flex-[1.5] rounded-[20px] overflow-hidden relative shadow-xl animate-fade-in delay-300 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl cursor-pointer min-h-[180px]"
+      >
         <div style={{
           position: 'absolute',
           top: 0, left: 0, right: 0, bottom: 0,
@@ -26,9 +31,26 @@ const ConsultingCards = () => {
           <div style={{ color: 'var(--text-white)', fontWeight: 'bold', fontSize: '1.5rem', marginBottom: '0.5rem' }}>
             WorkSync Engine
           </div>
-          <Link href="/worksync" style={{ color: 'var(--accent-lime)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', cursor: 'pointer', textDecoration: 'none' }}>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation(); // Avoid triggering double modal open from parent click
+              setIsModalOpen(true);
+            }}
+            style={{ 
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              color: 'var(--accent-lime)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.5rem', 
+              fontSize: '0.9rem', 
+              cursor: 'pointer', 
+              textDecoration: 'none' 
+            }}
+          >
             Learn More <PlayCircle size={16} />
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -63,6 +85,9 @@ const ConsultingCards = () => {
         </div>
 
       </div>
+
+      {/* Modern Showcase Modal */}
+      <WorkSyncModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 };

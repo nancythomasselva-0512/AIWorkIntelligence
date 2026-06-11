@@ -15,7 +15,7 @@ export class ReportsService {
       .leftJoinAndSelect('log.user', 'user')
       .orderBy('log.created_at', 'DESC');
     
-    if (user.role !== 'it_administrator') {
+    if (user.role !== 'employee') {
       query.andWhere('user.id = :userId', { userId: user.userId });
     }
 

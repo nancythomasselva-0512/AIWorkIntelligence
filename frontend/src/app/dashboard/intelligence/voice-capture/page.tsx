@@ -353,15 +353,13 @@ export default function VoiceCapturePage() {
         
       } else if (file.type.startsWith('image/')) {
         setFileProgress({ text: 'Running Optical Character Recognition (OCR)...', percent: 20 });
-        const worker = await Tesseract.createWorker({
-          logger: m => {
+        const worker = await Tesseract.createWorker('eng', 1, {
+          logger: (m: any) => {
             if (m.status === 'recognizing text') {
               setFileProgress({ text: `OCR Progress: ${Math.round(m.progress * 100)}%`, percent: 20 + (m.progress * 60) });
             }
           }
         });
-        await worker.loadLanguage('eng');
-        await worker.initialize('eng');
         const { data: { text } } = await worker.recognize(file);
         extractedText = text;
         await worker.terminate();
@@ -505,7 +503,7 @@ export default function VoiceCapturePage() {
             {/* Left Side - Recording */}
             <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col flex-1 shadow-2xl overflow-y-auto custom-scrollbar">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold">Record Your Voice</h2>
+                <h2 className="text-sm sm:text-base md:text-xl font-bold whitespace-nowrap">Record Your Voice</h2>
                 {isRecording && (
                   <div className="flex items-center gap-3 text-sm font-bold text-opti-lime">
                     <div className="w-3 h-8 flex items-center gap-1">
@@ -558,23 +556,20 @@ export default function VoiceCapturePage() {
             {/* Right Side - Transcript */}
             <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col flex-1 shadow-2xl">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold flex items-center gap-3">
+                <h2 className="text-sm sm:text-base md:text-xl font-bold flex items-center gap-1.5 whitespace-nowrap">
                   Live Transcription 
-                  {isRecording && <span className="text-[10px] uppercase tracking-wider bg-[#1C3E2F] text-opti-lime px-2 py-0.5 rounded font-bold">Live</span>}
+                  {isRecording && <span className="text-[9px] md:text-[10px] uppercase tracking-wider bg-[#1C3E2F] text-opti-lime px-1.5 py-0.5 rounded font-bold">Live</span>}
                 </h2>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 bg-[#071420] border border-white/10 rounded-lg px-3 py-1.5 shadow-sm">
-                    <Globe className="w-4 h-4 text-opti-lime" /> 
-                    <select 
-                      value={language}
-                      onChange={(e) => setLanguage(e.target.value)}
-                      disabled={isRecording}
-                      className="bg-transparent text-white text-sm font-bold focus:outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <option value="en-US" className="bg-[#0F1F2E]">English (US)</option>
-                      <option value="ta-IN" className="bg-[#0F1F2E]">Tamil (தமிழ்)</option>
-                    </select>
-                  </div>
+                <div className="flex items-center gap-1.5 md:gap-2 bg-[#071420] border border-white/10 rounded-lg px-2 py-1 md:px-3 md:py-1.5 shadow-sm">
+                  <Globe className="w-3.5 h-3.5 md:w-4 md:h-4 text-opti-lime" /> 
+                  <select 
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="bg-transparent text-white text-xs md:text-sm font-bold focus:outline-none cursor-pointer"
+                  >
+                    <option value="en-US" className="bg-[#0F1F2E]">English (US)</option>
+                    <option value="ta-IN" className="bg-[#0F1F2E]">Tamil (தமிழ்)</option>
+                  </select>
                 </div>
               </div>
               
@@ -598,7 +593,7 @@ export default function VoiceCapturePage() {
         {activeTab === 'text' && (
           <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col flex-1 shadow-2xl">
              <div className="flex justify-between items-center mb-6">
-               <h2 className="text-xl font-bold">Manual Text Input</h2>
+               <h2 className="text-sm sm:text-base md:text-xl font-bold whitespace-nowrap">Manual Text Input</h2>
                <div className="flex items-center gap-3">
                  <div className="flex items-center gap-2 bg-[#071420] border border-white/10 rounded-lg px-3 py-1.5 shadow-sm">
                    <Globe className="w-4 h-4 text-opti-lime" /> 
@@ -645,7 +640,7 @@ export default function VoiceCapturePage() {
         {activeTab === 'files' && (
           <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col flex-1 shadow-2xl">
              <div className="flex justify-between items-center mb-6">
-               <h2 className="text-xl font-bold">Files Upload</h2>
+               <h2 className="text-sm sm:text-base md:text-xl font-bold whitespace-nowrap">Files Upload</h2>
                <div className="flex items-center gap-3">
                  <div className="flex items-center gap-2 bg-[#071420] border border-white/10 rounded-lg px-3 py-1.5 shadow-sm">
                    <Globe className="w-4 h-4 text-opti-lime" /> 

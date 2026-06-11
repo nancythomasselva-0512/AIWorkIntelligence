@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState('intern'); // intern, mentor, it_administrator
+  const [role, setRole] = useState('intern'); // intern, mentor, employee
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -41,7 +41,7 @@ export default function LoginPage() {
         setSuccess('Logged in successfully!');
         
         setTimeout(() => {
-          if (user.role === 'it_administrator' || user.email.includes('admin')) {
+          if (user.role === 'employee' || user.email.includes('admin')) {
             router.push('/admin');
           } else {
             router.push('/worksync');
@@ -66,7 +66,7 @@ export default function LoginPage() {
         // Seed default administrator if credentials match and user is not registered
         let storedUser = storedUsers[email];
         if (!storedUser && email === 'admin@gmail.com' && password === 'admin@123') {
-          storedUser = { role: 'it_administrator', name: 'IT Administrator' };
+          storedUser = { role: 'employee', name: 'Employee' };
         }
 
         if (storedUser) {
@@ -74,7 +74,7 @@ export default function LoginPage() {
           localStorage.setItem('user', JSON.stringify({ email, role: storedUser.role, name: storedUser.name }));
           setSuccess('Logged in successfully (Mock)!');
           setTimeout(() => {
-            if (email.includes('admin') || storedUser.role === 'it_administrator') {
+            if (email.includes('admin') || storedUser.role === 'employee') {
               router.push('/admin');
             } else {
               router.push('/worksync');
@@ -84,12 +84,12 @@ export default function LoginPage() {
         } else {
           // Allow any default user login if no mock user exists
           const name = email.split('@')[0];
-          const calculatedRole = email.includes('admin') ? 'it_administrator' : 'intern';
+          const calculatedRole = email.includes('admin') ? 'employee' : 'intern';
           localStorage.setItem('token', 'mock-token-for-ui-testing');
           localStorage.setItem('user', JSON.stringify({ email, role: calculatedRole, name }));
           setSuccess('Logged in successfully (Mock)!');
           setTimeout(() => {
-            if (calculatedRole === 'it_administrator') {
+            if (calculatedRole === 'employee') {
               router.push('/admin');
             } else {
               router.push('/worksync');
@@ -244,9 +244,9 @@ export default function LoginPage() {
                   onChange={(e) => setRole(e.target.value)}
                   className="mt-1 bg-[#0F1F2E] border border-white/10 text-white block w-full pl-3 pr-10 py-3 sm:text-sm rounded-lg focus:ring-opti-lime focus:border-opti-lime"
                 >
-                  <option value="intern">Intern / Employee</option>
-                  <option value="mentor">Mentor / Manager</option>
-                  <option value="it_administrator">IT Administrator</option>
+                  <option value="intern">Intern</option>
+                  <option value="mentor">Mentor</option>
+                  <option value="employee">Employee</option>
                 </select>
               </div>
             )}

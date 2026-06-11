@@ -5,7 +5,7 @@
 :root {
   --font-inter: 'Inter', sans-serif;
   --font-outfit: 'Outfit', sans-serif;
-  
+
   /* Default Dark Theme */
   --bg-main: #0F1F2E;
   --bg-panel: #071420;
@@ -26,7 +26,8 @@
   --text-secondary: #64748B;
   --border-color: rgba(0, 0, 0, 0.1);
   --border-color-light: rgba(0, 0, 0, 0.05);
-  --accent-color: #A3E635; /* Darker Lime for better contrast */
+  --accent-color: #A3E635;
+  /* Darker Lime for better contrast */
   --accent-hover: #84CC16;
   --accent-text: #0F172A;
 }
@@ -35,25 +36,84 @@
    Dynamic Theme Class Overrides
    (Overrides hardcoded tailwind classes)
 -------------------------------------- */
-.theme-light .bg-\[\#0F1F2E\] { background-color: var(--bg-main) !important; }
-.theme-light .bg-\[\#071420\] { background-color: var(--bg-panel) !important; }
-.theme-light .bg-\[\#152737\] { background-color: #E2E8F0 !important; }
-.theme-light .text-\[\#C7F23A\], .theme-light .text-opti-lime { color: var(--accent-color) !important; }
-.theme-light .bg-\[\#C7F23A\], .theme-light .bg-opti-lime { background-color: var(--accent-color) !important; color: var(--accent-text) !important; }
-.theme-light .border-\[\#071420\] { border-color: var(--bg-panel) !important; }
-.theme-light .border-white\/5 { border-color: var(--border-color-light) !important; }
-.theme-light .border-white\/10 { border-color: var(--border-color) !important; }
-.theme-light .border-white\/20 { border-color: rgba(0, 0, 0, 0.2) !important; }
-.theme-light .bg-white\/5 { background-color: rgba(0, 0, 0, 0.02) !important; }
-.theme-light .bg-white\/10 { background-color: rgba(0, 0, 0, 0.05) !important; }
-.theme-light .hover\:bg-white\/10:hover { background-color: rgba(0, 0, 0, 0.1) !important; }
-.theme-light .text-white { color: var(--text-primary) !important; }
-.theme-light .text-gray-300 { color: #334155 !important; }
-.theme-light .text-gray-400 { color: var(--text-secondary) !important; }
-.theme-light .text-gray-500 { color: #94A3B8 !important; }
-.theme-light .ring-opti-lime { --tw-ring-color: var(--accent-color) !important; }
-.theme-light .focus\:ring-opti-lime:focus { --tw-ring-color: var(--accent-color) !important; }
-.theme-light .focus\:border-opti-lime:focus { border-color: var(--accent-color) !important; }
+.theme-light .bg-\[\#0F1F2E\] {
+  background-color: var(--bg-main) !important;
+}
+
+.theme-light .bg-\[\#071420\] {
+  background-color: var(--bg-panel) !important;
+}
+
+.theme-light .bg-\[\#152737\] {
+  background-color: #E2E8F0 !important;
+}
+
+.theme-light .text-\[\#C7F23A\],
+.theme-light .text-opti-lime {
+  color: var(--accent-color) !important;
+}
+
+.theme-light .bg-\[\#C7F23A\],
+.theme-light .bg-opti-lime {
+  background-color: var(--accent-color) !important;
+  color: var(--accent-text) !important;
+}
+
+.theme-light .border-\[\#071420\] {
+  border-color: var(--bg-panel) !important;
+}
+
+.theme-light .border-white\/5 {
+  border-color: var(--border-color-light) !important;
+}
+
+.theme-light .border-white\/10 {
+  border-color: var(--border-color) !important;
+}
+
+.theme-light .border-white\/20 {
+  border-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+.theme-light .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.02) !important;
+}
+
+.theme-light .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.theme-light .hover\:bg-white\/10:hover {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.theme-light .text-white {
+  color: var(--text-primary) !important;
+}
+
+.theme-light .text-gray-300 {
+  color: #334155 !important;
+}
+
+.theme-light .text-gray-400 {
+  color: var(--text-secondary) !important;
+}
+
+.theme-light .text-gray-500 {
+  color: #94A3B8 !important;
+}
+
+.theme-light .ring-opti-lime {
+  --tw-ring-color: var(--accent-color) !important;
+}
+
+.theme-light .focus\:ring-opti-lime:focus {
+  --tw-ring-color: var(--accent-color) !important;
+}
+
+.theme-light .focus\:border-opti-lime:focus {
+  border-color: var(--accent-color) !important;
+}
 
 body {
   font-family: var(--font-inter);
@@ -63,7 +123,16 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-h1, h2, h3, h4, h5, h6 {
+p {
+  text-align: justify !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-outfit);
 }
 
@@ -147,31 +216,49 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
   animation: fadeIn 0.8s ease-out forwards;
 }
 
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
 
 /* Custom Scrollbar Styles */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 10px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(199, 242, 58, 0.5);
 }
@@ -180,14 +267,17 @@ h1, h2, h3, h4, h5, h6 {
 .tabs-scrollbar::-webkit-scrollbar {
   height: 4px;
 }
+
 .tabs-scrollbar::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
 }
+
 .tabs-scrollbar::-webkit-scrollbar-thumb {
   background: var(--accent-color, #C7F23A);
   border-radius: 10px;
 }
+
 .tabs-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: var(--accent-color, #C7F23A) rgba(255, 255, 255, 0.05);
@@ -198,8 +288,10 @@ h1, h2, h3, h4, h5, h6 {
    Mobile Responsiveness Overrides
 -------------------------------------- */
 @media (max-width: 768px) {
+
   /* Prevent horizontal scroll */
-  html, body {
+  html,
+  body {
     overflow-x: hidden !important;
     width: 100%;
   }
@@ -224,16 +316,18 @@ h1, h2, h3, h4, h5, h6 {
 
   /* About company vision overlay card positioning */
   .company-vision-box {
-    position: relative !important;
-    left: 0 !important;
-    bottom: 0 !important;
-    margin: 1.5rem auto 0 auto !important;
-    max-width: 100% !important;
-    box-shadow: 0 5px 15px -3px rgba(0,0,0,0.1) !important;
+    position: absolute !important;
+    left: 1rem !important;
+    bottom: -45px !important;
+    margin: 0 !important;
+    max-width: 230px !important;
+    padding: 1rem !important;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15) !important;
   }
 }
 
 @media (max-width: 480px) {
+
   /* Tighten mockup scaling for smaller phones */
   .mockup-wrapper {
     transform: scale(0.65);
@@ -247,15 +341,18 @@ h1, h2, h3, h4, h5, h6 {
     gap: 1rem !important;
     border-radius: 1rem !important;
   }
+
   .contact-info-icon {
     width: 3.2rem !important;
     height: 3.2rem !important;
     border-radius: 0.75rem !important;
   }
+
   .contact-info-icon svg {
     width: 22px !important;
     height: 22px !important;
   }
+
   .contact-info-text {
     font-size: 0.9rem !important;
     word-break: break-all !important;
@@ -263,10 +360,112 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (max-width: 360px) {
+
   /* Scale mockup for narrow screens like iPhone SE */
   .mockup-wrapper {
     transform: scale(0.55);
     transform-origin: center top;
     height: 330px !important;
+  }
+}
+
+/* About Us mobile styling overrides: screens below 768px width */
+@media (max-width: 767px) {
+  #home {
+    padding-bottom: 0px !important;
+  }
+
+  .hero-section {
+    padding-top: 2rem !important;
+    padding-bottom: 0px !important;
+  }
+
+  .main-content {
+    margin-top: 0.5rem !important; /* Bring about section closer to ConsultingCards on mobile */
+  }
+
+  .about-section {
+    padding-top: 0.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+
+  .about-heading-wrapper {
+    margin-bottom: 0px !important;
+  }
+
+  .about-heading-wrapper h2 {
+    margin: 0 !important;
+    font-size: 2rem !important;
+    /* Slightly smaller heading on mobile */
+  }
+
+  .about-flex-container {
+    gap: 0.5rem !important;
+  }
+
+  .about-logo-wrapper {
+    justify-content: flex-start !important;
+    /* Left aligned logo and company name */
+    margin-top: 0px !important;
+    margin-bottom: 12px !important; /* Balanced gap between logo/text and meeting image, no overlap */
+    padding-left: 0 !important;
+    /* Flush alignment with left edge */
+  }
+
+  .about-logo-img {
+    width: 50px !important;
+    /* Reduced logo size */
+    height: 50px !important;
+    margin-left: 0 !important;
+  }
+
+  .about-logo-wrapper h3 {
+    font-size: 1.6rem !important;
+    /* Reduced company name font-size */
+  }
+
+  .about-image-wrapper {
+    margin-top: 0px !important; /* Safe margin, no overlap with text */
+  }
+
+  .about-right-content {
+    margin-top: 65px !important; /* Leave space for the absolute vision card on mobile */
+  }
+}
+
+/* Premium gradient blend transition between dark hero and light content */
+.transition-fade-layer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 17, 24, 0) 0%,
+    rgba(123, 143, 158, 0.15) 35%,
+    rgba(255, 255, 255, 0.7) 70%,
+    #ffffff 100%
+  );
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* Mobile: shrink language dropdown in Live Transcription panel */
+@media (max-width: 640px) {
+  .lang-select {
+    max-width: 46px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.65rem !important;
+  }
+
+  .lang-pill {
+    padding-left: 0.35rem !important;
+    padding-right: 0.35rem !important;
+    gap: 0.25rem !important;
   }
 }

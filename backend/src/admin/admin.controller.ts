@@ -8,7 +8,7 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   private checkAdminRole(req: any) {
-    if (req.user?.role !== 'it_administrator') {
+    if (req.user?.role !== 'employee') {
       throw new UnauthorizedException('Admin privileges required.');
     }
   }
@@ -19,6 +19,27 @@ export class AdminController {
     this.checkAdminRole(req);
     const data = await this.adminService.getAllUsers();
     return { data };
+  }
+
+  @Post('users')
+  async createUser(@Request() req, @Body() body) {
+    this.checkAdminRole(req);
+    const data = await this.adminService.createUser(body);
+    return { data, message: 'User created successfully' };
+  }
+
+  @Put('users/:id')
+  async updateUser(@Request() req, @Param('id') id: string, @Body() body) {
+    this.checkAdminRole(req);
+    const data = await this.adminService.updateUser(id, body);
+    return { data, message: 'User updated successfully' };
+  }
+
+  @Delete('users/:id')
+  async deleteUser(@Request() req, @Param('id') id: string) {
+    this.checkAdminRole(req);
+    await this.adminService.deleteUser(id);
+    return { success: true, message: 'User deleted successfully' };
   }
 
   // --- Organizations ---

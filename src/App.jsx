@@ -13,17 +13,19 @@ function App() {
       <div style={{
         background: 'linear-gradient(180deg, var(--bg-gradient-top) 0%, var(--bg-dark) 40%, var(--bg-gradient-bottom) 100%)',
         position: 'relative',
-        paddingBottom: '12rem'
+        paddingBottom: '8rem'
       }}>
         <Navbar />
         <Hero />
-        <div style={{ position: 'absolute', bottom: '-40px', left: 0, right: 0, zIndex: 10 }}>
+        <div style={{ position: 'absolute', bottom: '-20px', left: 0, right: 0, zIndex: 10 }}>
           <ConsultingCards />
         </div>
+        {/* Smooth visual transition layer */}
+        <div className="transition-fade-layer"></div>
       </div>
 
       {/* Main Content with white background */}
-      <main className="mt-8 md:mt-16">
+      <main className="mt-6 md:mt-24">
         <About />
         <Services />
       </main>

@@ -17,7 +17,7 @@ export class WorklogsService {
       .orderBy('log.created_at', 'DESC');
     
     // Role-based separation logic
-    if (user.role !== 'it_administrator') {
+    if (user.role !== 'employee') {
       // Mentors and Interns only see their own logs
       query.andWhere('user.id = :userId', { userId: user.userId });
     }

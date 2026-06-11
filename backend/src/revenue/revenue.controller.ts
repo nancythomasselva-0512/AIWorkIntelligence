@@ -10,7 +10,7 @@ export class RevenueController {
   constructor(private readonly revenueService: RevenueService) {}
 
   @Get()
-  @Roles('it_administrator', 'mentor') // Interns cannot access revenue data
+  @Roles('employee', 'mentor') // Interns cannot access revenue data
   findAll() {
     return this.revenueService.findAll();
   }

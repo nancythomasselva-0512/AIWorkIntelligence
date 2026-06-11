@@ -14,7 +14,7 @@ const About = () => {
         
         {/* Left Side: Images */}
         <div style={{ flex: 1 }}>
-          <div style={{ position: 'relative' }}>
+          <div className="about-image-wrapper" style={{ position: 'relative' }}>
             <div style={{ 
               borderRadius: '20px', 
               overflow: 'hidden',
@@ -53,7 +53,7 @@ const About = () => {
         </div>
 
         {/* Right Side: Content */}
-        <div className="mt-8 lg:mt-0" style={{ flex: 1 }}>
+        <div className="mt-8 lg:mt-0 about-right-content" style={{ flex: 1 }}>
 
           <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem' }}>
              <Leaf color="var(--accent-lime)" size={40} style={{ flexShrink: 0 }} />
@@ -71,17 +71,19 @@ const About = () => {
             padding: '1.5rem',
             borderRadius: '15px',
             display: 'flex',
+            flexWrap: 'wrap',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
+            gap: '1.5rem',
             boxShadow: '0 10px 25px -5px rgba(0,0,0,0.15)'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <CheckCircle color="var(--accent-lime)" size={24} />
+            <div className="flex flex-col sm:flex-row" style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'center', textAlign: 'center' }}>
+              <CheckCircle color="var(--accent-lime)" size={24} style={{ flexShrink: 0 }} />
               <span style={{ fontSize: '0.9rem', maxWidth: '280px', lineHeight: '1.4' }}>
                 Join us to achieve sustainable growth and reach your financial goals.
               </span>
             </div>
-            <button className="btn btn-lime" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
+            <button className="btn btn-lime" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem', flexShrink: 0 }}>
               Learn More →
             </button>
           </div>

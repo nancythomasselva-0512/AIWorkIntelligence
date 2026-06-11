@@ -41,12 +41,12 @@ export class AppModule implements OnModuleInit {
   async onModuleInit() {
     const admin = await this.usersService.findOne('admin@gmail.com');
     if (!admin) {
-      console.log('Seeding IT Administrator: admin@gmail.com');
+      console.log('Seeding Employee: admin@gmail.com');
       await this.authService.register({
         email: 'admin@gmail.com',
         password: 'admin@123',
-        full_name: 'IT Administrator',
-        role: 'it_administrator'
+        full_name: 'Employee',
+        role: 'employee'
       });
     }
   }

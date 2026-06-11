@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { Organization } from '../entities/organization.entity';
 import { Project } from '../entities/project.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AdminService {
@@ -19,6 +20,35 @@ export class AdminService {
       select: ['id', 'email', 'full_name', 'role', 'created_at'],
       order: { created_at: 'DESC' }
     });
+  }
+
+  async createUser(data: any) {
+    const hashedPassword = await bcrypt.hash(data.password || 'password123', 10);
+    const user = this.userRepository.create({
+      email: data.email,
+      password_hash: hashedPassword,
+      full_name: data.name || data.full_name,
+      role: data.role || 'intern'
+    });
+    return this.userRepository.save(user);
+  }
+
+  async updateUser(id: string, data: any) {
+    const updateData: any = {};
+    if (data.name || data.full_name) updateData.full_name = data.name || data.full_name;
+    if (data.role) updateData.role = data.role;
+    if (data.email) updateData.email = data.email;
+    if (data.password) {
+      updateData.password_hash = await bcrypt.hash(data.password, 10);
+    }
+    await this.userRepository.update(id, updateData);
+    return this.userRepository.findOne({ where: { id } });
+  }
+
+  async deleteUser(id: string) {
+    // Delete user's work logs first to prevent foreign key constraint violations
+    await this.userRepository.manager.delete('work_logs', { user: { id } });
+    return this.userRepository.delete(id);
   }
 
   // --- Organizations ---

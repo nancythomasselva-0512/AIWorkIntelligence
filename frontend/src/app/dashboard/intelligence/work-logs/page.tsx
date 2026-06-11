@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
+import api from '../../../../utils/api';
 
 export default function WorkLogsPage() {
   const [logs, setLogs] = useState<any[]>([]);

@@ -161,28 +161,75 @@ export default function VoiceCapturePage() {
     }
   }, [selectedRecord]);
 
-  const handleDeleteRecord = () => {
+  const handleDeleteRecord = async () => {
     if (!selectedRecord) return;
-    let updatedLogs = recentLogs;
-    if (selectedRecord.id?.startsWith('FullDay_')) {
-      const dateString = new Date(selectedRecord.createdAt).toLocaleDateString();
-      updatedLogs = recentLogs.filter(log => new Date(log.createdAt).toLocaleDateString() !== dateString);
-    } else {
-      updatedLogs = recentLogs.filter(log => log.id !== selectedRecord.id);
+    
+    if (window.confirm('Are you sure you want to delete this record?')) {
+      try {
+        if (selectedRecord.id?.startsWith('FullDay_')) {
+          const childLogs = selectedRecord.logs || [];
+          for (const log of childLogs) {
+            if (log.id && !log.id.startsWith('mock')) {
+              await api.delete(`/worklogs/${log.id}`);
+            }
+          }
+        } else {
+          if (selectedRecord.id && !selectedRecord.id.startsWith('mock')) {
+            await api.delete(`/worklogs/${selectedRecord.id}`);
+          }
+        }
+        setToastMessage('Record deleted successfully!');
+        setTimeout(() => setToastMessage(''), 3000);
+      } catch (err) {
+        console.error('Failed to delete record on backend database', err);
+        setToastMessage('Error deleting record from database.');
+        setTimeout(() => setToastMessage(''), 3000);
+      }
+
+      let updatedLogs = recentLogs;
+      if (selectedRecord.id?.startsWith('FullDay_')) {
+        const dateString = new Date(selectedRecord.createdAt).toLocaleDateString();
+        updatedLogs = recentLogs.filter(log => new Date(log.createdAt).toLocaleDateString() !== dateString);
+      } else {
+        updatedLogs = recentLogs.filter(log => log.id !== selectedRecord.id);
+      }
+      setRecentLogs(updatedLogs);
+      localStorage.setItem('mock_worklogs', JSON.stringify(updatedLogs));
+      setSelectedRecord(null);
+      fetchRecentLogs();
     }
-    setRecentLogs(updatedLogs);
-    localStorage.setItem('mock_worklogs', JSON.stringify(updatedLogs));
-    setSelectedRecord(null);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!selectedRecord) return;
+    
+    try {
+      if (selectedRecord.id?.startsWith('FullDay_')) {
+        const childLogs = selectedRecord.logs || [];
+        if (childLogs.length > 0) {
+          const firstLog = childLogs[0];
+          await api.put(`/worklogs/${firstLog.id}`, { textContent: editRecordText });
+          for (let i = 1; i < childLogs.length; i++) {
+            await api.delete(`/worklogs/${childLogs[i].id}`);
+          }
+        }
+      } else {
+        if (selectedRecord.id && !selectedRecord.id.startsWith('mock')) {
+          await api.put(`/worklogs/${selectedRecord.id}`, { textContent: editRecordText });
+        }
+      }
+      setToastMessage('Record updated successfully!');
+      setTimeout(() => setToastMessage(''), 3000);
+    } catch (err) {
+      console.error('Failed to update record on backend database', err);
+      setToastMessage('Error updating record in database.');
+      setTimeout(() => setToastMessage(''), 3000);
+    }
+
     let updatedLogs = recentLogs;
     if (selectedRecord.id?.startsWith('FullDay_')) {
       const dateString = new Date(selectedRecord.createdAt).toLocaleDateString();
-      // Remove all logs from this date
       updatedLogs = recentLogs.filter(log => new Date(log.createdAt).toLocaleDateString() !== dateString);
-      // Create a single consolidated log
       const newLog = {
         id: Date.now().toString(),
         createdAt: selectedRecord.createdAt,
@@ -200,6 +247,47 @@ export default function VoiceCapturePage() {
     localStorage.setItem('mock_worklogs', JSON.stringify(updatedLogs));
     setSelectedRecord({ ...selectedRecord, textContent: editRecordText });
     setIsEditingRecord(false);
+    fetchRecentLogs();
+  };
+
+  const migrateLocalRecords = async () => {
+    const token = localStorage.getItem('token');
+    if (!token || token === 'mock-token-for-ui-testing') return;
+
+    const localLogsStr = localStorage.getItem('mock_worklogs');
+    if (!localLogsStr) return;
+
+    try {
+      const localLogs = JSON.parse(localLogsStr);
+      if (localLogs.length === 0) return;
+
+      console.log(`Migrating ${localLogs.length} local records to backend database...`);
+      let migratedCount = 0;
+
+      for (const log of localLogs) {
+        if (log.id && (log.id.startsWith('mock') || !isNaN(Number(log.id)))) {
+          try {
+            await api.post('/worklogs', {
+              textContent: log.textContent || log.transcribed_text,
+              category: log.category || 'General',
+              tags: log.tags || '',
+              organizationId: null,
+              projectId: null,
+            });
+            migratedCount++;
+          } catch (postErr) {
+            console.error('Failed to migrate record:', log, postErr);
+          }
+        }
+      }
+
+      if (migratedCount > 0) {
+        console.log(`Successfully migrated ${migratedCount} records to backend.`);
+        localStorage.removeItem('mock_worklogs');
+      }
+    } catch (err) {
+      console.error('Migration failed', err);
+    }
   };
 
   useEffect(() => {
@@ -216,7 +304,11 @@ export default function VoiceCapturePage() {
         }
       }
     } catch (e) {}
-    fetchRecentLogs(localName);
+    
+    // First migrate any local records, then load recent logs
+    migrateLocalRecords().finally(() => {
+      fetchRecentLogs(localName);
+    });
   }, []);
 
   const fetchRecentLogs = async (nameFilter?: string) => {
@@ -448,15 +540,13 @@ export default function VoiceCapturePage() {
         
       } else if (file.type.startsWith('image/')) {
         setFileProgress({ text: 'Running Optical Character Recognition (OCR)...', percent: 20 });
-        const worker = await Tesseract.createWorker({
-          logger: m => {
+        const worker = await Tesseract.createWorker('eng', 1, {
+          logger: (m: any) => {
             if (m.status === 'recognizing text') {
               setFileProgress({ text: `OCR Progress: ${Math.round(m.progress * 100)}%`, percent: 20 + (m.progress * 60) });
             }
           }
         });
-        await worker.loadLanguage('eng');
-        await worker.initialize('eng');
         const { data: { text } } = await worker.recognize(file);
         extractedText = text;
         await worker.terminate();
@@ -567,7 +657,8 @@ export default function VoiceCapturePage() {
       createdAt: logs[0].createdAt,
       category: allCategories,
       tags: allTags,
-      textContent: combinedText
+      textContent: combinedText,
+      logs: logs
     });
   };
 
@@ -708,7 +799,7 @@ export default function VoiceCapturePage() {
             {/* Left Side - Recording */}
             <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 shadow-2xl">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold">Record Your Voice</h2>
+                <h2 className="text-sm sm:text-base md:text-xl font-bold whitespace-nowrap">Record Your Voice</h2>
                 {isRecording && (
                   <div className="flex items-center gap-3 text-sm font-bold text-opti-lime">
                     <div className="w-3 h-8 flex items-center gap-1">
@@ -761,25 +852,21 @@ export default function VoiceCapturePage() {
             {/* Right Side - Transcript */}
             <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 min-h-[350px] xl:min-h-0 shadow-2xl">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold flex items-center gap-3">
+                <h2 className="text-sm sm:text-base md:text-xl font-bold flex items-center gap-1.5 whitespace-nowrap">
                   Live Transcription 
-                  {isRecording && <span className="text-[10px] uppercase tracking-wider bg-[#1C3E2F] text-opti-lime px-2 py-0.5 rounded font-bold">Live</span>}
+                  {isRecording && <span className="text-[9px] md:text-[10px] uppercase tracking-wider bg-[#1C3E2F] text-opti-lime px-1.5 py-0.5 rounded font-bold">Live</span>}
                 </h2>
-                <div className="flex items-center gap-3">
-
-
-                  <div className="flex items-center gap-2 bg-[#071420] border border-white/10 rounded-lg px-3 py-1.5 shadow-sm">
-                    <Globe className="w-4 h-4 text-opti-lime" /> 
-                    <select 
-                      value={language}
-                      onChange={(e) => setLanguage(e.target.value)}
-                      disabled={isRecording}
-                      className="bg-transparent text-white text-sm font-bold focus:outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <option value="en-US" className="bg-[#0F1F2E]">English (US)</option>
-                      <option value="ta-IN" className="bg-[#0F1F2E]">Tamil (தமிழ்)</option>
-                    </select>
-                  </div>
+                <div className="lang-pill flex items-center gap-1.5 md:gap-2 bg-[#071420] border border-white/10 rounded-lg px-2 py-1 md:px-3 md:py-1.5 shadow-sm">
+                  <Globe className="w-3.5 h-3.5 md:w-4 md:h-4 text-opti-lime" /> 
+                  <select 
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    disabled={isRecording}
+                    className="lang-select bg-transparent text-white text-xs md:text-sm font-bold focus:outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="en-US" className="bg-[#0F1F2E]">English (US)</option>
+                    <option value="ta-IN" className="bg-[#0F1F2E]">Tamil (தமிழ்)</option>
+                  </select>
                 </div>
               </div>
               
@@ -800,16 +887,16 @@ export default function VoiceCapturePage() {
         {activeTab === 'text' && (
           <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 min-h-[450px] xl:min-h-0 shadow-2xl">
              <div className="flex justify-between items-center mb-6">
-               <h2 className="text-xl font-bold">Manual Text Input</h2>
+               <h2 className="text-sm sm:text-base md:text-xl font-bold whitespace-nowrap">Manual Text Input</h2>
                <div className="flex items-center gap-3">
 
 
-                 <div className="flex items-center gap-2 bg-[#071420] border border-white/10 rounded-lg px-3 py-1.5 shadow-sm">
-                   <Globe className="w-4 h-4 text-opti-lime" /> 
+                 <div className="lang-pill flex items-center gap-2 bg-[#071420] border border-white/10 rounded-lg px-3 py-1.5 shadow-sm">
+                   <Globe className="w-4 h-4 text-opti-lime shrink-0" /> 
                    <select 
                      value={language}
                      onChange={(e) => setLanguage(e.target.value)}
-                     className="bg-transparent text-white text-sm font-bold focus:outline-none cursor-pointer"
+                     className="lang-select bg-transparent text-white text-sm font-bold focus:outline-none cursor-pointer"
                    >
                      <option value="en-US" className="bg-[#0F1F2E]">English (US)</option>
                      <option value="ta-IN" className="bg-[#0F1F2E]">Tamil (தமிழ்)</option>
@@ -849,17 +936,17 @@ export default function VoiceCapturePage() {
         {activeTab === 'files' && (
           <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 min-h-[400px] xl:min-h-0 shadow-2xl">
              <div className="flex justify-between items-center mb-6">
-               <h2 className="text-xl font-bold">Files Upload</h2>
+               <h2 className="text-sm sm:text-base md:text-xl font-bold whitespace-nowrap">Files Upload</h2>
                <div className="flex items-center gap-3">
 
 
-                 <div className="flex items-center gap-2 bg-[#071420] border border-white/10 rounded-lg px-3 py-1.5 shadow-sm">
-                   <Globe className="w-4 h-4 text-opti-lime" /> 
+                 <div className="lang-pill flex items-center gap-2 bg-[#071420] border border-white/10 rounded-lg px-3 py-1.5 shadow-sm">
+                   <Globe className="w-4 h-4 text-opti-lime shrink-0" /> 
                    <select 
                      value={language}
                      onChange={(e) => setLanguage(e.target.value)}
                      disabled={isProcessingFile}
-                     className="bg-transparent text-white text-sm font-bold focus:outline-none cursor-pointer disabled:opacity-50"
+                     className="lang-select bg-transparent text-white text-sm font-bold focus:outline-none cursor-pointer disabled:opacity-50"
                    >
                      <option value="en-US" className="bg-[#0F1F2E]">English (US)</option>
                      <option value="ta-IN" className="bg-[#0F1F2E]">Tamil (தமிழ்)</option>
@@ -977,7 +1064,7 @@ export default function VoiceCapturePage() {
 
         {/* Right Side Sidebar - Saved Records (Only show when not in full records view) */}
         {activeTab !== 'records' && (
-        <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col w-full xl:w-[450px] shrink-0 shadow-2xl xl:min-h-0 overflow-visible xl:overflow-y-auto custom-scrollbar">
+        <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col w-full xl:w-[450px] shrink-0 shadow-2xl xl:min-h-0 overflow-hidden xl:overflow-y-auto custom-scrollbar">
           <h2 className="text-xl font-bold mb-6">Saved Records</h2>
           
           <div className="flex-1 space-y-6 pr-2 pb-4">
@@ -987,23 +1074,23 @@ export default function VoiceCapturePage() {
               Object.keys(groupedLogs).map((date) => (
                 <div 
                   key={date} 
-                  className="bg-[#071420] border border-white/5 rounded-2xl p-5 shadow-inner cursor-pointer hover:border-opti-lime/30 transition-colors group"
+                  className="bg-[#071420] border border-white/5 rounded-2xl p-5 shadow-inner cursor-pointer hover:border-opti-lime/30 transition-colors group overflow-hidden"
                   onClick={() => handleFullDaySelect(date, groupedLogs[date])}
                 >
-                  <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
-                    <h3 className="text-opti-lime font-bold flex items-center gap-2">
+                  <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-2 min-w-0">
+                    <h3 className="text-opti-lime font-bold flex items-center gap-2 min-w-0 truncate mr-2">
                       {date.includes('|') ? (
                         <>
-                          <Calendar size={16} /> {date.split('|')[0]}
-                          <span className="text-opti-lime/50 mx-2">•</span> {date.split('|')[1]}
+                          <Calendar size={16} className="shrink-0" /> <span className="truncate">{date.split('|')[0]}</span>
+                          <span className="text-opti-lime/50 mx-1 shrink-0">•</span> <span className="truncate">{date.split('|')[1]}</span>
                         </>
                       ) : (
-                        <>{date}</>
+                        <span className="truncate">{date}</span>
                       )}
                     </h3>
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleFullDaySelect(date, groupedLogs[date]); }}
-                      className="relative flex items-center justify-center w-8 h-8 rounded-full text-opti-lime bg-opti-lime/10 hover:bg-opti-lime hover:text-[#071420] transition-all duration-300 cursor-pointer group-hover:bg-opti-lime group-hover:text-[#071420]"
+                      className="relative flex items-center justify-center w-8 h-8 shrink-0 rounded-full text-opti-lime bg-opti-lime/10 hover:bg-opti-lime hover:text-[#071420] transition-all duration-300 cursor-pointer group-hover:bg-opti-lime group-hover:text-[#071420]"
                       title="Download Full Day Record"
                     >
                       <span className="absolute inset-0 rounded-full border border-opti-lime/50 animate-[ping_2s_ease-in-out_infinite] opacity-75 hidden group-hover:block"></span>

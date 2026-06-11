@@ -8,7 +8,7 @@ const Hero = () => {
   const [showJoinModal, setShowJoinModal] = useState(false);
 
   return (
-    <section className="container flex flex-col lg:flex-row items-center justify-between pt-16 pb-12 lg:pb-24 min-h-0 lg:min-h-[80vh] gap-12">
+    <section className="container hero-section flex flex-col lg:flex-row items-center justify-between pt-16 pb-4 lg:pb-24 min-h-0 lg:min-h-[80vh] gap-12">
       {/* Phone Mockup Column (Desktop ONLY) */}
       <div className="hidden lg:flex order-2 flex-none justify-center relative animate-fade-in delay-200 w-[40%]">
          {/* Background Decorator */}
@@ -23,9 +23,11 @@ const Hero = () => {
            zIndex: 0
          }}></div>
          
-         <div className="scale-[0.7] sm:scale-[0.75] md:scale-[0.8] lg:scale-[0.85] origin-top h-[420px] sm:h-[450px] md:h-[500px] lg:h-[450px] lg:overflow-hidden w-full relative z-10 flex justify-center">
-            <Mockup />
-         </div>
+         <div className="h-[500px] lg:h-[500px]" style={{ position: 'relative', zIndex: 10, width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ transform: 'scale(0.8)', transformOrigin: 'top center', width: '100%', display: 'flex', justifyContent: 'center' }}>
+              <Mockup />
+            </div>
+          </div>
       </div>
 
       {/* Left Content Column (Order 2 on mobile, Order 1 on desktop) */}
@@ -39,7 +41,7 @@ const Hero = () => {
           AI-Powered Personal Operating System
         </h1>
         
-        <p className="text-gray-400 text-base md:text-lg leading-relaxed mb-8 max-w-[500px] mx-auto lg:mx-0">
+        <p className="text-gray-400 text-base md:text-lg leading-relaxed mb-8 max-w-[500px] mx-auto lg:mx-0" style={{ textIndent: '2rem' }}>
           Automatically capture, organize, analyze, track, and monetize daily work activities across multiple organizations and projects.
         </p>
         
@@ -79,7 +81,7 @@ const Hero = () => {
            </div>
            
            {/* Right side: Mockup on Mobile */}
-           <div className="flex lg:hidden justify-end w-[45%] h-[300px] sm:h-[370px] md:h-[420px] overflow-visible relative">
+           <div className="flex lg:hidden justify-end w-[45%] h-[150px] sm:h-[220px] md:h-[280px] overflow-visible relative">
               <div className="absolute -top-6 sm:-top-8 -right-8 scale-[0.55] sm:scale-[0.65] md:scale-[0.75] origin-top-right">
                  <Mockup />
               </div>

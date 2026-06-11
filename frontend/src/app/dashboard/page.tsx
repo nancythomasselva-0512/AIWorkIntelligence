@@ -122,7 +122,7 @@ export default function MainDashboard() {
       // Extract Timeline Events
       const recentLogs = allLogs.slice(0, 4);
       const events = recentLogs.map((log: any, index: number) => {
-        let iconType = FileText;
+        let iconType: any = FileText;
         if (log.category?.toLowerCase().includes('meeting')) iconType = Users;
         else if (log.category?.toLowerCase().includes('voice')) iconType = BrainCircuit;
 

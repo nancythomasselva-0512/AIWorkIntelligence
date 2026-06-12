@@ -274,7 +274,7 @@ const WorkSyncModal: React.FC<WorkSyncModalProps> = ({ isOpen, onClose }) => {
                           </div>
                           
                           <div className="text-center">
-                            <p className="text-opti-lime text-lg font-mono mb-1">"...refactored the SQLite entity mappings..."</p>
+                            <p className="text-opti-lime text-lg font-mono mb-1">&quot;...refactored the SQLite entity mappings...&quot;</p>
                             <p className="text-gray-400 text-xs">Simulated Audio Dictation Input</p>
                           </div>
 
@@ -369,7 +369,7 @@ const WorkSyncModal: React.FC<WorkSyncModalProps> = ({ isOpen, onClose }) => {
                     
                     <h4 className="text-lg font-bold text-white mb-2">Request A Private Sandbox</h4>
                     <p className="text-[#a3b8cc] text-xs leading-relaxed mb-6">
-                      Deploy the WorkSync Engine container straight to your organization's cloud infrastructure in minutes.
+                      Deploy the WorkSync Engine container straight to your organization&apos;s cloud infrastructure in minutes.
                     </p>
 
                     {hasRequested ? (

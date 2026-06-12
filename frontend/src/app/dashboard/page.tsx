@@ -191,7 +191,7 @@ export default function MainDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Dashboard Overview</h1>
-          <p className="text-sm text-gray-400 mt-1">Welcome back. Here's what's happening today.</p>
+          <p className="text-sm text-gray-400 mt-1">Welcome back. Here&apos;s what&apos;s happening today.</p>
         </div>
         <button 
           onClick={handleGenerateReport} 
@@ -342,7 +342,7 @@ export default function MainDashboard() {
 
             <div className="bg-[#071420] border border-white/5 rounded-xl p-4">
               <p className="text-sm text-gray-300 leading-relaxed">
-                Based on your voice logs, you frequently mention <strong className="text-white">"Server Deployment"</strong>. Would you like to create a recurring project for this?
+                Based on your voice logs, you frequently mention <strong className="text-white">&quot;Server Deployment&quot;</strong>. Would you like to create a recurring project for this?
               </p>
             </div>
           </div>

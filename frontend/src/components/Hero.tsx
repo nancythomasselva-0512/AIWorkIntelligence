@@ -51,7 +51,7 @@ const Hero = () => {
            <div className="w-[55%] lg:w-full flex flex-col items-start text-left">
               <div className="flex justify-start mb-6">
                 <Link href="/login" className="btn btn-lime whitespace-nowrap px-3 py-1.5 text-[0.75rem] lg:px-[1.4rem] lg:py-[0.7rem] lg:text-[0.92rem]">
-                  Let's Get Started <span style={{ marginLeft: '0.5rem' }}>↗</span>
+                  Let&apos;s Get Started <span style={{ marginLeft: '0.5rem' }}>↗</span>
                 </Link>
               </div>
 

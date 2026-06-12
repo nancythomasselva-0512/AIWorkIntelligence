@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Hexagon, Lock, Mail, Loader2, User, ArrowLeft } from 'lucide-react';
+import { Hexagon, Lock, Mail, Loader2, User, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import Link from 'next/link';
 
@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState('intern'); // intern, mentor, employee
   const [isLoading, setIsLoading] = useState(false);
@@ -225,14 +226,21 @@ export default function LoginPage() {
                   <Lock className="h-5 w-5 text-gray-500" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   autoComplete="new-password"
-                  className="bg-[#0F1F2E] border border-white/10 text-white block w-full pl-10 sm:text-sm rounded-lg focus:ring-opti-lime focus:border-opti-lime py-3"
+                  className="bg-[#0F1F2E] border border-white/10 text-white block w-full pl-10 pr-10 sm:text-sm rounded-lg focus:ring-opti-lime focus:border-opti-lime py-3"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
             </div>
 

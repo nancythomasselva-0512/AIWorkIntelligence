@@ -9,7 +9,7 @@ const Contact = () => {
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>Contact <span style={{ color: 'var(--accent-lime)' }}>Us</span></h2>
           <p style={{ color: '#666', fontSize: '1.1rem' }}>
-            Have a question about our enterprise plans, need technical support, or just want to say hi? We'd love to hear from you.
+            Have a question about our enterprise plans, need technical support, or just want to say hi? We&apos;d love to hear from you.
           </p>
         </div>
 

@@ -195,7 +195,7 @@ export default function TasksPage() {
             <div className="p-12 text-center">
               <CheckCircle2 className="w-12 h-12 text-gray-600 mx-auto mb-3 opacity-50" />
               <h3 className="text-white font-medium text-lg">No tasks found</h3>
-              <p className="text-gray-500 text-sm mt-1">You're all caught up!</p>
+              <p className="text-gray-500 text-sm mt-1">You&apos;re all caught up!</p>
             </div>
           ) : (
             filteredTasks.map((task) => (

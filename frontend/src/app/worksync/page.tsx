@@ -333,6 +333,31 @@ export default function VoiceCapturePage() {
   }, [transcript]);
 
   useEffect(() => {
+    // Smooth scroll down to the content on mobile view when tab changes
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setTimeout(() => {
+        let targetId = '';
+        if (activeTab === 'voice') {
+          targetId = 'voice-capture-box';
+        } else if (activeTab === 'text') {
+          targetId = 'text-input-box';
+        } else if (activeTab === 'files') {
+          targetId = 'files-upload-box';
+        } else if (activeTab === 'records') {
+          targetId = 'all-records-box';
+        }
+        
+        if (targetId) {
+          const element = document.getElementById(targetId);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      }, 150);
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isRecording && !isPaused) {
       interval = setInterval(() => {
@@ -764,28 +789,28 @@ export default function VoiceCapturePage() {
       </header>
 
       <div className="px-4 md:px-8 mt-6">
-        <div className="flex overflow-x-auto tabs-scrollbar items-center gap-2 border-b border-white/10 pb-3">
+        <div className="flex flex-row flex-nowrap overflow-x-auto tabs-scrollbar items-center gap-2 border-b border-white/10 pb-3 scroll-smooth snap-x snap-mandatory [&::-webkit-scrollbar]:hidden">
           <button 
             onClick={() => setActiveTab('voice')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'voice' ? 'bg-opti-lime text-[#071420]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap snap-start ${activeTab === 'voice' ? 'bg-opti-lime text-[#071420]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
           >
             <Mic size={16} /> Voice Capture
           </button>
           <button 
             onClick={() => setActiveTab('text')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'text' ? 'bg-opti-lime text-[#071420]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap snap-start ${activeTab === 'text' ? 'bg-opti-lime text-[#071420]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
           >
             <Type size={16} /> Text Input
           </button>
           <button 
             onClick={() => setActiveTab('files')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'files' ? 'bg-opti-lime text-[#071420]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap snap-start ${activeTab === 'files' ? 'bg-opti-lime text-[#071420]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
           >
             <UploadCloud size={16} /> Files Upload
           </button>
           <button 
             onClick={() => setActiveTab('records')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'records' ? 'bg-opti-lime text-[#071420]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap snap-start ${activeTab === 'records' ? 'bg-opti-lime text-[#071420]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
           >
             <Database size={16} /> All Records (Worklogs)
           </button>
@@ -797,7 +822,7 @@ export default function VoiceCapturePage() {
         {activeTab === 'voice' && (
           <>
             {/* Left Side - Recording */}
-            <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 shadow-2xl">
+            <div id="voice-capture-box" className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 shadow-2xl">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-sm sm:text-base md:text-xl font-bold whitespace-nowrap">Record Your Voice</h2>
                 {isRecording && (
@@ -885,7 +910,7 @@ export default function VoiceCapturePage() {
         )}
 
         {activeTab === 'text' && (
-          <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 min-h-[450px] xl:min-h-0 shadow-2xl">
+          <div id="text-input-box" className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 min-h-[450px] xl:min-h-0 shadow-2xl">
              <div className="flex justify-between items-center mb-6">
                <h2 className="text-sm sm:text-base md:text-xl font-bold whitespace-nowrap">Manual Text Input</h2>
                <div className="flex items-center gap-3">
@@ -934,7 +959,7 @@ export default function VoiceCapturePage() {
         )}
 
         {activeTab === 'files' && (
-          <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 min-h-[400px] xl:min-h-0 shadow-2xl">
+          <div id="files-upload-box" className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 min-h-[400px] xl:min-h-0 shadow-2xl">
              <div className="flex justify-between items-center mb-6">
                <h2 className="text-sm sm:text-base md:text-xl font-bold whitespace-nowrap">Files Upload</h2>
                <div className="flex items-center gap-3">
@@ -995,7 +1020,7 @@ export default function VoiceCapturePage() {
         )}
 
         {activeTab === 'records' && (
-          <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 min-h-[500px] xl:min-h-0 shadow-2xl">
+          <div id="all-records-box" className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col flex-none xl:flex-1 min-h-[500px] xl:min-h-0 shadow-2xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">All Records (Worklogs)</h2>
               <div className="text-sm text-gray-500">Total Records: {recentLogs.length}</div>

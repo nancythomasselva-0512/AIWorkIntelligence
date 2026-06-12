@@ -9,15 +9,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
+  const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
+      const userStr = localStorage.getItem('user');
+      
       if (!token) {
         router.push('/login');
+        return;
       }
+
+      setIsCheckingAuth(false);
     }
-  }, [router]);
+  }, [pathname, router]);
+
+  if (isCheckingAuth) {
+    return (
+      <div className="flex h-screen w-screen bg-[#071420] items-center justify-center text-opti-lime text-xl font-bold font-inter relative overflow-hidden">
+        {/* Decorative background glow */}
+        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-opti-lime/5 rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-opti-lime/5 rounded-full blur-[100px]"></div>
+        <div className="flex flex-col items-center gap-4 relative z-10">
+          <Hexagon className="text-opti-lime w-12 h-12 animate-spin" style={{ animationDuration: '3s' }} />
+          <span className="animate-pulse">Syncing AI Workspace...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-[#0F1F2E] font-inter text-white overflow-hidden">

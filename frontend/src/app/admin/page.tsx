@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Shield, Lock, Mail, ArrowRight, Mic, Square, Pause, Trash2, Globe, Calendar as CalendarIcon, Download, Play, StopCircle, LayoutDashboard, Type, UploadCloud, Users, Save, Loader2, CheckCircle2, X, FileText, Edit3, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -21,9 +21,16 @@ export default function AdminPage() {
   const [error, setError] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  
+
   // Navigation State
   const [activeTab, setActiveTab] = useState<'dashboard' | 'voice' | 'text' | 'files'>('dashboard');
+  const activeTabRef = useRef(activeTab);
+  useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
+
+  // Filter tabs scroll-into-view ref
+  const filterTabsRef = useRef<HTMLDivElement>(null);
+  const filterBtnRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
   const [filterRole, setFilterRole] = useState('All');
 
   // Recording State
@@ -32,7 +39,7 @@ export default function AdminPage() {
   const [recordingTime, setRecordingTime] = useState(0);
   const [transcript, setTranscript] = useState('');
   const [language, setLanguage] = useState('en-US');
-  
+
   // Text/File State
   const [manualText, setManualText] = useState('');
   const [isProcessingFile, setIsProcessingFile] = useState(false);
@@ -48,9 +55,70 @@ export default function AdminPage() {
   const transcriptRef = useRef('');
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Mobile sliding tab underline refs
+  const tabContainerRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({
+    dashboard: null,
+    voice: null,
+    text: null,
+    files: null,
+  });
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, ready: false });
+
   useEffect(() => {
     transcriptRef.current = transcript;
   }, [transcript]);
+
+  const moveIndicator = useCallback((tab: string, immediate: boolean) => {
+    const container = tabContainerRef.current;
+    const btn = tabRefs.current[tab];
+    if (!container || !btn) return;
+    if (window.innerWidth >= 768) return;
+    const containerRect = container.getBoundingClientRect();
+    const btnRect = btn.getBoundingClientRect();
+    const left = btnRect.left - containerRect.left + container.scrollLeft;
+    const width = btnRect.width;
+    setIndicatorStyle({ left, width, ready: true });
+  }, []);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      setTimeout(() => moveIndicator(activeTab, true), 16);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [activeTab, moveIndicator]);
+
+  // Scroll selected filter tab into view on mobile
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth >= 768) return;
+    const btn = filterBtnRefs.current[filterRole];
+    if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  }, [filterRole]);
+
+  // Dashboard view state — declared here so the peek useEffect below can reference it
+  const [allUsers, setAllUsers] = useState<any>({});
+  const [dashboardView, setDashboardView] = useState<'records' | 'users' | 'userRecords'>('records');
+  const [selectedUserRole, setSelectedUserRole] = useState('Employee');
+  const [selectedUserProfile, setSelectedUserProfile] = useState<any>(null);
+
+  // "Peek" animation — briefly scroll the filter bar right then back,
+  // so mobile users know more options exist off-screen
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth >= 768) return;
+    if (dashboardView !== 'records') return;
+    const el = filterTabsRef.current;
+    if (!el) return;
+    // Wait for the panel to render, then peek
+    const peekTimer = setTimeout(() => {
+      el.scrollTo({ left: 80, behavior: 'smooth' });
+      // Snap back after a short pause
+      const snapTimer = setTimeout(() => {
+        el.scrollTo({ left: 0, behavior: 'smooth' });
+      }, 600);
+      return () => clearTimeout(snapTimer);
+    }, 500);
+    return () => clearTimeout(peekTimer);
+  }, [dashboardView]);
 
   useEffect(() => {
     if (isRecording && !isPaused) {
@@ -65,13 +133,112 @@ export default function AdminPage() {
     };
   }, [isRecording, isPaused]);
 
-  const [allUsers, setAllUsers] = useState<any>({});
-  const [dashboardView, setDashboardView] = useState<'records' | 'users' | 'userRecords'>('records');
-  const [selectedUserRole, setSelectedUserRole] = useState('Employee');
-  const [selectedUserProfile, setSelectedUserProfile] = useState<any>(null);
-  
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [editUserForm, setEditUserForm] = useState({ name: '', email: '', role: 'employee' });
+
+  const handleCardClick = (view: 'records' | 'users', role?: string) => {
+    setDashboardView(view);
+    if (role) {
+      setSelectedUserRole(role);
+    }
+
+    // Smooth scroll to the box on mobile view
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setTimeout(() => {
+        const targetId = view === 'records' ? 'records-directory-box' : 'user-management-box';
+        const element = document.getElementById(targetId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  };
+
+  const handleTabClick = (tab: 'dashboard' | 'voice' | 'text' | 'files') => {
+    setActiveTab(tab);
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setTimeout(() => {
+        let targetId = '';
+        if (tab === 'dashboard') {
+          targetId = dashboardView === 'records' ? 'records-directory-box'
+            : dashboardView === 'users' ? 'user-management-box'
+              : 'user-records-box';
+        } else if (tab === 'voice') {
+          targetId = 'voice-capture-box';
+        } else if (tab === 'text') {
+          targetId = 'text-input-box';
+        } else if (tab === 'files') {
+          targetId = 'files-upload-box';
+        }
+
+        if (targetId) {
+          const element = document.getElementById(targetId);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      }, 100);
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setTimeout(() => {
+        let targetId = '';
+        if (activeTab === 'dashboard') {
+          targetId = dashboardView === 'records' ? 'records-directory-box'
+            : dashboardView === 'users' ? 'user-management-box'
+              : 'user-records-box';
+        } else if (activeTab === 'voice') {
+          targetId = 'voice-capture-box';
+        } else if (activeTab === 'text') {
+          targetId = 'text-input-box';
+        } else if (activeTab === 'files') {
+          targetId = 'files-upload-box';
+        }
+
+        if (targetId) {
+          const element = document.getElementById(targetId);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      }, 150);
+    }
+  }, [activeTab, dashboardView]);
+
+  const handleEditRecordDirectly = (log: any) => {
+    setSelectedRecord(log);
+    setEditRecordText(log.textContent || '');
+    setIsEditingRecord(true);
+  };
+
+  const handleDeleteRecordDirectly = async (log: any) => {
+    if (window.confirm('Are you sure you want to delete this record?')) {
+      try {
+        const token = localStorage.getItem('token');
+        if (token && token !== 'mock-token-for-ui-testing' && !log.id?.startsWith('mock') && isNaN(Number(log.id))) {
+          await axios.delete(`${API_BASE}/worklogs/${log.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          showToast('Record deleted from database!');
+        } else {
+          // Fallback/Mock logs
+          const localLogs = JSON.parse(localStorage.getItem('mock_worklogs') || '[]');
+          const updatedLogs = localLogs.filter((l: any) => l.id !== log.id);
+          localStorage.setItem('mock_worklogs', JSON.stringify(updatedLogs));
+          showToast('Local record deleted!');
+        }
+        loadRecords();
+        if (selectedRecord?.id === log.id) {
+          setSelectedRecord(null);
+        }
+      } catch (err) {
+        console.error('Failed to delete worklog', err);
+        showToast('Error deleting record.');
+      }
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -305,7 +472,7 @@ export default function AdminPage() {
 
     rec.onend = () => {
       if (isRecording && !isPaused) {
-        try { rec.start(); } catch (e) {}
+        try { rec.start(); } catch (e) { }
       }
     };
 
@@ -323,9 +490,9 @@ export default function AdminPage() {
     setIsPaused(false);
     if (recognitionRef.current) {
       recognitionRef.current.onend = null;
-      try { recognitionRef.current.stop(); } catch (e) {}
+      try { recognitionRef.current.stop(); } catch (e) { }
     }
-    
+
     if (transcriptRef.current.trim()) {
       saveRecord(transcriptRef.current, 'Voice Note');
     }
@@ -335,9 +502,9 @@ export default function AdminPage() {
     if (!isRecording) return;
     setIsPaused(!isPaused);
     if (!isPaused) {
-      if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch (e) {} }
+      if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch (e) { } }
     } else {
-      try { recognitionRef.current.start(); } catch (e) {}
+      try { recognitionRef.current.start(); } catch (e) { }
     }
   };
 
@@ -352,7 +519,7 @@ export default function AdminPage() {
   const processFile = () => {
     setIsProcessingFile(true);
     setFileProgress({ text: 'Reading file contents...', percent: 20 });
-    
+
     setTimeout(() => setFileProgress({ text: 'Extracting text using OCR...', percent: 50 }), 1000);
     setTimeout(() => setFileProgress({ text: 'AI categorizing content...', percent: 80 }), 2000);
     setTimeout(() => {
@@ -489,7 +656,7 @@ export default function AdminPage() {
         const u = JSON.parse(userStr);
         adminName = u.name || adminName;
       }
-    } catch (e) {}
+    } catch (e) { }
 
     if (token && token !== 'mock-token-for-ui-testing') {
       try {
@@ -527,7 +694,7 @@ export default function AdminPage() {
     localStorage.setItem('mock_worklogs', JSON.stringify(localLogs));
     loadRecords();
     showToast('Record saved (Local Fallback)!');
-    if(activeTab !== 'dashboard') {
+    if (activeTab !== 'dashboard') {
       setActiveTab('dashboard');
     }
   };
@@ -574,7 +741,7 @@ export default function AdminPage() {
       } else {
         // Fallback/Mock logs
         const localLogs = JSON.parse(localStorage.getItem('mock_worklogs') || '[]');
-        const updatedLogs = localLogs.map((log: any) => 
+        const updatedLogs = localLogs.map((log: any) =>
           log.id === selectedRecord.id ? { ...log, textContent: editRecordText } : log
         );
         localStorage.setItem('mock_worklogs', JSON.stringify(updatedLogs));
@@ -591,32 +758,32 @@ export default function AdminPage() {
 
 
   // --- COMPUTED DATA ---
-  const filteredLogs = filterRole === 'All' 
-    ? allRecords 
+  const filteredLogs = filterRole === 'All'
+    ? allRecords
     : allRecords.filter(log => {
-        const logRole = (log.role || '').toLowerCase().replace(/\s+/g, '_');
-        // Map filter label → role value
-        const roleMap: Record<string, string> = {
-          'admin': 'admin',
-          'employee': 'employee',
-          'mentor': 'mentor',
-          'intern': 'intern',
-        };
-        const filterKey = filterRole.toLowerCase().replace(/\s+/g, '_');
-        const targetRole = roleMap[filterKey] || filterKey;
-        return logRole === targetRole || logRole.includes(targetRole);
-      });
+      const logRole = (log.role || '').toLowerCase().replace(/\s+/g, '_');
+      // Map filter label → role value
+      const roleMap: Record<string, string> = {
+        'admin': 'admin',
+        'employee': 'employee',
+        'mentor': 'mentor',
+        'intern': 'intern',
+      };
+      const filterKey = filterRole.toLowerCase().replace(/\s+/g, '_');
+      const targetRole = roleMap[filterKey] || filterKey;
+      return logRole === targetRole || logRole.includes(targetRole);
+    });
 
   const groupedLogs = filteredLogs.reduce((acc: any, log: any) => {
     const d = new Date(log.createdAt);
-    const dateStr = `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()} | ${d.toLocaleDateString(undefined, { weekday: 'long' })}`;
+    const dateStr = `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()} | ${d.toLocaleDateString(undefined, { weekday: 'long' })}`;
     if (!acc[dateStr]) acc[dateStr] = [];
     acc[dateStr].push(log);
     return acc;
   }, {});
 
   const userList = Object.keys(allUsers).map(email => ({ email, ...allUsers[email] }));
-  
+
   const stats = {
     total: allRecords.length,
     admins: userList.filter((u: any) => u.role.toLowerCase() === 'employee').length,
@@ -653,8 +820,8 @@ export default function AdminPage() {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Mail size={18} className="text-gray-500" />
                 </div>
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   autoComplete="new-password"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -671,8 +838,8 @@ export default function AdminPage() {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Lock size={18} className="text-gray-500" />
                 </div>
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -683,7 +850,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <button 
+            <button
               type="submit"
               className="w-full py-3.5 mt-4 bg-opti-lime text-[#071420] font-bold rounded-xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
             >
@@ -697,7 +864,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#071420] text-white font-inter flex flex-col overflow-hidden">
-      
+
       {/* Top Navbar / Submenus */}
       <header className="bg-[#0F1F2E] border-b border-white/5 py-4 px-4 md:px-8 sticky top-0 z-40">
         <div className="max-w-[1800px] mx-auto flex flex-col xl:flex-row items-center justify-between gap-4">
@@ -710,29 +877,60 @@ export default function AdminPage() {
               <p className="text-xs text-gray-400">System Command Center</p>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2 bg-[#071420] p-1 rounded-2xl border border-white/5 w-full xl:w-auto overflow-x-auto [&::-webkit-scrollbar]:hidden">
-            <button 
-              onClick={() => setActiveTab('dashboard')} 
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 whitespace-nowrap ${activeTab === 'dashboard' ? 'bg-opti-lime text-[#071420] shadow-md' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+
+          {/* Tab navigation — green pill on all screen sizes, scrollable on mobile */}
+          <div
+            ref={tabContainerRef}
+            className="relative flex flex-row flex-nowrap items-center gap-1 md:gap-2 bg-[#071420] p-1 rounded-2xl border border-white/5 w-full xl:w-auto overflow-x-auto scroll-smooth snap-x snap-mandatory [&::-webkit-scrollbar]:hidden"
+          >
+            {/* Dashboard Tab */}
+            <button
+              ref={el => { tabRefs.current.dashboard = el; }}
+              onClick={() => handleTabClick('dashboard')}
+              className={`relative flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 whitespace-nowrap snap-start
+                ${activeTab === 'dashboard'
+                  ? 'bg-opti-lime text-[#071420] shadow-md'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
             >
-              <LayoutDashboard size={16} /> Analytics & Records
+              <LayoutDashboard size={16} /> Analytics &amp; Records
             </button>
-            <button 
-              onClick={() => setActiveTab('voice')} 
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 whitespace-nowrap ${activeTab === 'voice' ? 'bg-opti-lime text-[#071420] shadow-md' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+
+            {/* Voice Capture Tab */}
+            <button
+              ref={el => { tabRefs.current.voice = el; }}
+              onClick={() => handleTabClick('voice')}
+              className={`relative flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 whitespace-nowrap snap-start
+                ${activeTab === 'voice'
+                  ? 'bg-opti-lime text-[#071420] shadow-md'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
             >
               <Mic size={16} /> Voice Capture
             </button>
-            <button 
-              onClick={() => setActiveTab('text')} 
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 whitespace-nowrap ${activeTab === 'text' ? 'bg-opti-lime text-[#071420] shadow-md' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+
+            {/* Text Input Tab */}
+            <button
+              ref={el => { tabRefs.current.text = el; }}
+              onClick={() => handleTabClick('text')}
+              className={`relative flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 whitespace-nowrap snap-start
+                ${activeTab === 'text'
+                  ? 'bg-opti-lime text-[#071420] shadow-md'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
             >
               <Type size={16} /> Text Input
             </button>
-            <button 
-              onClick={() => setActiveTab('files')} 
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 whitespace-nowrap ${activeTab === 'files' ? 'bg-opti-lime text-[#071420] shadow-md' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+
+            {/* Upload Files Tab */}
+            <button
+              ref={el => { tabRefs.current.files = el; }}
+              onClick={() => handleTabClick('files')}
+              className={`relative flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 whitespace-nowrap snap-start
+                ${activeTab === 'files'
+                  ? 'bg-opti-lime text-[#071420] shadow-md'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
             >
               <UploadCloud size={16} /> Upload Files
             </button>
@@ -741,75 +939,75 @@ export default function AdminPage() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+      <main className="flex-1 overflow-y-auto p-3 md:p-8 custom-scrollbar overflow-x-hidden">
         <div className="max-w-[1800px] mx-auto space-y-6">
 
           {/* DASHBOARD TAB */}
           {activeTab === 'dashboard' && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              
+
               {/* Analytics Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div 
-                  onClick={() => setDashboardView('records')}
-                  className={`bg-[#0F1F2E] border ${dashboardView === 'records' ? 'border-opti-lime/50 ring-1 ring-opti-lime/50' : 'border-white/5'} rounded-3xl p-6 shadow-xl relative overflow-hidden group cursor-pointer hover:border-opti-lime/50 transition-all`}
+              <div className="grid grid-cols-4 md:grid-cols-4 gap-2 md:gap-6">
+                <div
+                  onClick={() => handleCardClick('records')}
+                  className={`bg-[#0F1F2E] border ${dashboardView === 'records' ? 'border-opti-lime/50 ring-1 ring-opti-lime/50' : 'border-white/5'} rounded-2xl md:rounded-3xl p-3 md:p-6 shadow-xl relative overflow-hidden group cursor-pointer hover:border-opti-lime/50 transition-all`}
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-opti-lime/5 rounded-full blur-3xl group-hover:bg-opti-lime/10 transition-colors"></div>
-                  <div className="flex items-center gap-4 mb-4 relative z-10">
-                    <div className="w-12 h-12 bg-[#071420] border border-white/10 rounded-2xl flex items-center justify-center">
-                      <LayoutDashboard className="text-opti-lime w-6 h-6" />
+                  <div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-4 relative z-10 text-center md:text-left">
+                    <div className="w-8 h-8 md:w-12 md:h-12 bg-[#071420] border border-white/10 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
+                      <LayoutDashboard className="text-opti-lime w-4 h-4 md:w-6 md:h-6" />
                     </div>
-                    <div>
-                      <div className="text-sm font-bold text-gray-400">Total Records</div>
-                      <div className="text-3xl font-black text-white">{stats.total}</div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] md:text-sm font-bold text-gray-400 truncate max-w-full">Total Records</div>
+                      <div className="text-lg md:text-3xl font-black text-white mt-0.5 md:mt-0">{stats.total}</div>
                     </div>
                   </div>
                 </div>
 
-                <div 
-                  onClick={() => { setDashboardView('users'); setSelectedUserRole('employee'); }}
-                  className={`bg-[#0F1F2E] border ${dashboardView === 'users' && selectedUserRole === 'employee' ? 'border-blue-500/50 ring-1 ring-blue-500/50' : 'border-white/5'} rounded-3xl p-6 shadow-xl relative overflow-hidden group cursor-pointer hover:border-blue-500/50 transition-all`}
+                <div
+                  onClick={() => handleCardClick('users', 'employee')}
+                  className={`bg-[#0F1F2E] border ${dashboardView === 'users' && selectedUserRole === 'employee' ? 'border-blue-500/50 ring-1 ring-blue-500/50' : 'border-white/5'} rounded-2xl md:rounded-3xl p-3 md:p-6 shadow-xl relative overflow-hidden group cursor-pointer hover:border-blue-500/50 transition-all`}
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl group-hover:bg-blue-500/10 transition-colors"></div>
-                  <div className="flex items-center gap-4 mb-4 relative z-10">
-                    <div className="w-12 h-12 bg-[#071420] border border-white/10 rounded-2xl flex items-center justify-center">
-                      <Shield className="text-blue-400 w-6 h-6" />
+                  <div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-4 relative z-10 text-center md:text-left">
+                    <div className="w-8 h-8 md:w-12 md:h-12 bg-[#071420] border border-white/10 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
+                      <Shield className="text-blue-400 w-4 h-4 md:w-6 md:h-6" />
                     </div>
-                    <div>
-                      <div className="text-sm font-bold text-gray-400">Employees</div>
-                      <div className="text-3xl font-black text-white">{stats.admins}</div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] md:text-sm font-bold text-gray-400 truncate max-w-full">Employees</div>
+                      <div className="text-lg md:text-3xl font-black text-white mt-0.5 md:mt-0">{stats.admins}</div>
                     </div>
                   </div>
                 </div>
 
-                <div 
-                  onClick={() => { setDashboardView('users'); setSelectedUserRole('mentor'); }}
-                  className={`bg-[#0F1F2E] border ${dashboardView === 'users' && selectedUserRole === 'mentor' ? 'border-purple-500/50 ring-1 ring-purple-500/50' : 'border-white/5'} rounded-3xl p-6 shadow-xl relative overflow-hidden group cursor-pointer hover:border-purple-500/50 transition-all`}
+                <div
+                  onClick={() => handleCardClick('users', 'mentor')}
+                  className={`bg-[#0F1F2E] border ${dashboardView === 'users' && selectedUserRole === 'mentor' ? 'border-purple-500/50 ring-1 ring-purple-500/50' : 'border-white/5'} rounded-2xl md:rounded-3xl p-3 md:p-6 shadow-xl relative overflow-hidden group cursor-pointer hover:border-purple-500/50 transition-all`}
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl group-hover:bg-purple-500/10 transition-colors"></div>
-                  <div className="flex items-center gap-4 mb-4 relative z-10">
-                    <div className="w-12 h-12 bg-[#071420] border border-white/10 rounded-2xl flex items-center justify-center">
-                      <Users className="text-purple-400 w-6 h-6" />
+                  <div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-4 relative z-10 text-center md:text-left">
+                    <div className="w-8 h-8 md:w-12 md:h-12 bg-[#071420] border border-white/10 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
+                      <Users className="text-purple-400 w-4 h-4 md:w-6 md:h-6" />
                     </div>
-                    <div>
-                      <div className="text-sm font-bold text-gray-400">Mentors</div>
-                      <div className="text-3xl font-black text-white">{stats.mentors}</div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] md:text-sm font-bold text-gray-400 truncate max-w-full">Mentors</div>
+                      <div className="text-lg md:text-3xl font-black text-white mt-0.5 md:mt-0">{stats.mentors}</div>
                     </div>
                   </div>
                 </div>
 
-                <div 
-                  onClick={() => { setDashboardView('users'); setSelectedUserRole('intern'); }}
-                  className={`bg-[#0F1F2E] border ${dashboardView === 'users' && selectedUserRole === 'intern' ? 'border-green-500/50 ring-1 ring-green-500/50' : 'border-white/5'} rounded-3xl p-6 shadow-xl relative overflow-hidden group cursor-pointer hover:border-green-500/50 transition-all`}
+                <div
+                  onClick={() => handleCardClick('users', 'intern')}
+                  className={`bg-[#0F1F2E] border ${dashboardView === 'users' && selectedUserRole === 'intern' ? 'border-green-500/50 ring-1 ring-green-500/50' : 'border-white/5'} rounded-2xl md:rounded-3xl p-3 md:p-6 shadow-xl relative overflow-hidden group cursor-pointer hover:border-green-500/50 transition-all`}
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full blur-3xl group-hover:bg-green-500/10 transition-colors"></div>
-                  <div className="flex items-center gap-4 mb-4 relative z-10">
-                    <div className="w-12 h-12 bg-[#071420] border border-white/10 rounded-2xl flex items-center justify-center">
-                      <Users className="text-green-400 w-6 h-6" />
+                  <div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-4 relative z-10 text-center md:text-left">
+                    <div className="w-8 h-8 md:w-12 md:h-12 bg-[#071420] border border-white/10 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
+                      <Users className="text-green-400 w-4 h-4 md:w-6 md:h-6" />
                     </div>
-                    <div>
-                      <div className="text-sm font-bold text-gray-400">Interns</div>
-                      <div className="text-3xl font-black text-white">{stats.interns}</div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] md:text-sm font-bold text-gray-400 truncate max-w-full">Interns</div>
+                      <div className="text-lg md:text-3xl font-black text-white mt-0.5 md:mt-0">{stats.interns}</div>
                     </div>
                   </div>
                 </div>
@@ -817,109 +1015,141 @@ export default function AdminPage() {
 
               {/* Records List */}
               {dashboardView === 'records' && (
-                <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 shadow-2xl">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                  <h2 className="text-2xl font-bold font-outfit text-white">System Records Directory</h2>
-                  
-                  {/* Role Filters */}
-                  <div className="flex items-center gap-2 bg-[#071420] p-1 rounded-2xl border border-white/5">
-                    {['All', 'Admin', 'Employee', 'Mentor', 'Intern'].map(role => (
-                      <button 
-                        key={role}
-                        onClick={() => setFilterRole(role)}
-                        className={`px-4 py-2 rounded-xl font-bold text-xs transition-colors ${filterRole === role ? 'bg-opti-lime text-[#071420]' : 'text-gray-400 hover:text-white'}`}
-                      >
-                        {role}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <div id="records-directory-box" className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-4 md:p-8 shadow-2xl overflow-hidden">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                    <h2 className="text-2xl font-bold font-outfit text-white">System Records Directory</h2>
 
-                <div className="space-y-6">
-                  {Object.keys(groupedLogs).length === 0 ? (
-                    <div className="text-center text-gray-500 py-12 italic border border-white/5 rounded-2xl bg-[#071420]">No records found for this role.</div>
-                  ) : (
-                    Object.keys(groupedLogs).map((date) => (
-                      <div key={date} className="bg-[#071420] border border-white/5 rounded-2xl p-6 shadow-inner">
-                        <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-4 gap-2">
-                          <h3 className="text-opti-lime font-bold text-sm sm:text-base md:text-lg flex items-center gap-1.5 sm:gap-2 min-w-0 truncate">
-                            <CalendarIcon className="w-4.5 h-4.5 sm:w-5 sm:h-5 shrink-0" /> <span className="truncate">{date.split('|')[0].trim()}</span>
-                            <span className="text-opti-lime/50 mx-1 sm:mx-2 shrink-0">•</span> <span className="truncate">{date.split('|')[1].trim()}</span>
-                          </h3>
-                        </div>
-                        <div className="space-y-5">
-                          {groupedLogs[date].map((log: any, idx: number) => (
-                            <div 
-                              key={log.id || idx} 
-                              className="relative pl-6 py-2 border-l-2 border-white/10 last:border-transparent cursor-pointer hover:bg-white/5 rounded-xl transition-colors group/record"
-                              onClick={() => {
-                                setSelectedRecord(log);
-                                setEditRecordText(log.textContent || '');
-                                setIsEditingRecord(false);
-                              }}
-                            >
-                              <div className="absolute left-[-5px] top-4 w-2 h-2 rounded-full bg-opti-lime"></div>
-                              <div className="flex flex-col md:flex-row md:items-start gap-4">
-                                
-                                {/* User Info Column */}
-                                <div className="w-48 shrink-0 flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center font-bold text-opti-lime">
-                                    {log.userName ? log.userName.charAt(0).toUpperCase() : 'U'}
-                                  </div>
-                                  <div>
-                                    <div className="font-bold text-white text-sm">{log.userName || 'System User'}</div>
-                                    <div className={`text-[10px] font-bold uppercase tracking-wide mt-1 px-2 py-0.5 rounded inline-block ${
-                                      log.role === 'Admin' ? 'bg-red-500/10 text-red-400' :
-                                      log.role === 'Mentor' ? 'bg-purple-500/10 text-purple-400' :
-                                      log.role === 'Intern' ? 'bg-green-500/10 text-green-400' :
-                                      'bg-blue-500/10 text-blue-400'
-                                    }`}>
-                                      {log.role || 'Employee'}
+                    {/* Role Filters — scrollable on mobile, static on desktop */}
+                    {/* Outer wrapper: relative for the fade-hint, clipped */}
+                    <div className="relative md:static">
+                      {/* Right-edge gradient fade — mobile only hint that more tabs exist */}
+                      <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#071420] to-transparent z-10 md:hidden rounded-r-2xl" />
+                      {/* Scrollable track */}
+                      <div
+                        ref={filterTabsRef}
+                        className="flex flex-row flex-nowrap items-center gap-1 md:gap-2 bg-[#071420] p-1 rounded-2xl border border-white/5
+                          overflow-x-auto md:overflow-x-visible
+                          scroll-smooth snap-x
+                          [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]
+                          pr-6 md:pr-1"
+                      >
+                        {['All', 'Admin', 'Employee', 'Mentor', 'Intern'].map(role => (
+                          <button
+                            key={role}
+                            ref={el => { filterBtnRefs.current[role] = el; }}
+                            onClick={() => setFilterRole(role)}
+                            className={`px-4 py-2 rounded-xl font-bold text-xs transition-colors whitespace-nowrap snap-start shrink-0
+                              ${filterRole === role ? 'bg-opti-lime text-[#071420]' : 'text-gray-400 hover:text-white'}`}
+                          >
+                            {role}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    {Object.keys(groupedLogs).length === 0 ? (
+                      <div className="text-center text-gray-500 py-12 italic border border-white/5 rounded-2xl bg-[#071420]">No records found for this role.</div>
+                    ) : (
+                      Object.keys(groupedLogs).map((date) => (
+                        <div key={date} className="bg-[#071420] border border-white/5 rounded-2xl p-6 shadow-inner">
+                          <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-4 gap-2">
+                            <h3 className="text-opti-lime font-bold text-sm sm:text-base md:text-lg flex items-center gap-1.5 sm:gap-2 min-w-0 truncate">
+                              <CalendarIcon className="w-4.5 h-4.5 sm:w-5 sm:h-5 shrink-0" /> <span className="truncate">{date.split('|')[0].trim()}</span>
+                              <span className="text-opti-lime/50 mx-1 sm:mx-2 shrink-0">•</span> <span className="truncate">{date.split('|')[1].trim()}</span>
+                            </h3>
+                          </div>
+                          <div className="space-y-5">
+                            {groupedLogs[date].map((log: any, idx: number) => (
+                              <div
+                                key={log.id || idx}
+                                className="relative pl-6 py-2 border-l-2 border-white/10 last:border-transparent cursor-pointer hover:bg-white/5 rounded-xl transition-colors group/record"
+                                onClick={() => {
+                                  setSelectedRecord(log);
+                                  setEditRecordText(log.textContent || '');
+                                  setIsEditingRecord(false);
+                                }}
+                              >
+                                <div className="absolute left-[-5px] top-4 w-2 h-2 rounded-full bg-opti-lime"></div>
+                                <div className="flex flex-col md:flex-row md:items-start gap-3 md:gap-4">
+
+                                  {/* User Info Column */}
+                                  <div className="flex items-center gap-2 md:w-48 md:shrink-0">
+                                    <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-opti-lime/10 border border-opti-lime/30 flex items-center justify-center font-bold text-opti-lime shrink-0">
+                                      {log.userName ? log.userName.charAt(0).toUpperCase() : 'U'}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <div className="font-bold text-white text-sm break-words whitespace-normal">{log.userName || 'System User'}</div>
+                                      <div className={`text-[10px] font-bold uppercase tracking-wide mt-1 px-2 py-0.5 rounded inline-block ${log.role === 'Admin' ? 'bg-red-500/10 text-red-400' :
+                                        log.role === 'Mentor' ? 'bg-purple-500/10 text-purple-400' :
+                                          log.role === 'Intern' ? 'bg-green-500/10 text-green-400' :
+                                            'bg-blue-500/10 text-blue-400'
+                                        }`}>
+                                        {log.role || 'Employee'}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
 
-                                {/* Content Column */}
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-1.5 sm:gap-2 mb-2 flex-wrap">
-                                    <span className="text-xs font-bold text-gray-400 flex items-center gap-1 whitespace-nowrap shrink-0">
-                                      <Play size={10} className="text-opti-lime shrink-0"/> {new Date(log.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                    </span>
-                                    {log.category && (
-                                      <>
-                                        <span className="text-gray-600 text-[10px]">•</span>
-                                        <span className="text-xs text-gray-400 font-medium">{log.category}</span>
-                                      </>
-                                    )}
+                                  {/* Content Column */}
+                                  <div className="flex-1 min-w-0 overflow-hidden">
+                                    <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                                      <span className="text-xs font-bold text-gray-400 flex items-center gap-1 whitespace-nowrap shrink-0">
+                                        <Play size={10} className="text-opti-lime shrink-0" /> {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                      </span>
+                                      {log.category && (
+                                        <>
+                                          <span className="text-gray-600 text-[10px]">•</span>
+                                          <span className="text-xs text-gray-400 font-medium">{log.category}</span>
+                                        </>
+                                      )}
+                                    </div>
+                                    <div className="text-sm md:text-base text-gray-200 leading-relaxed break-words whitespace-pre-wrap overflow-hidden">{log.textContent}</div>
+                                    <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mt-2 md:mt-3">
+                                      {log.tags && log.tags.split(',').map((tag: string, i: number) => tag.trim() ? (
+                                        <span key={i} className="bg-white/5 border border-white/10 text-gray-400 px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-bold">{tag.trim()}</span>
+                                      ) : null)}
+                                    </div>
                                   </div>
-                                  <div className="text-base text-gray-200 leading-relaxed whitespace-pre-wrap">{log.textContent}</div>
-                                  <div className="flex flex-wrap items-center gap-2 mt-3">
-                                    {log.tags && log.tags.split(',').map((tag: string, i: number) => tag.trim() ? (
-                                      <span key={i} className="bg-white/5 border border-white/10 text-gray-400 px-3 py-1 rounded-full text-xs font-bold">{tag.trim()}</span>
-                                    ) : null)}
-                                  </div>
-                                </div>
 
+                                  {/* Actions Column (Inside the box) */}
+                                  <div className="flex items-center gap-2 self-end md:self-start md:ml-auto mt-2 md:mt-0" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                      onClick={() => handleEditRecordDirectly(log)}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                                      title="Edit"
+                                    >
+                                      <Edit3 size={13} /> Edit
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteRecordDirectly(log)}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 border border-red-500/20 text-xs font-bold text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors"
+                                      title="Delete"
+                                    >
+                                      <Trash2 size={13} /> Delete
+                                    </button>
+                                  </div>
+
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))
-                  )}
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
               )}
 
               {/* User Management UI */}
               {dashboardView === 'users' && (
-                <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 shadow-2xl">
+                <div id="user-management-box" className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-4 md:p-8 shadow-2xl overflow-hidden">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <h2 className="text-2xl font-bold font-outfit text-white flex items-center gap-2">
-                      <Users className="text-opti-lime" /> 
+                      <Users className="text-opti-lime" />
                       {selectedUserRole === 'employee' ? 'Employees' : selectedUserRole === 'mentor' ? 'Mentors' : 'Interns'} Management
                     </h2>
-                    <button 
+                    <button
                       onClick={() => {
                         setEditingUser('new');
                         setEditUserForm({ name: '', email: '', role: selectedUserRole });
@@ -935,12 +1165,12 @@ export default function AdminPage() {
                       <div className="text-center text-gray-500 py-12 italic border border-white/5 rounded-2xl bg-[#071420]">No users found for this role.</div>
                     ) : (
                       userList.filter(u => u.role.toLowerCase() === selectedUserRole).map((u, idx) => (
-                        <div key={idx} className="bg-[#071420] border border-white/5 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-opti-lime/30 transition-colors">
+                        <div key={idx} className="bg-[#071420] border border-white/5 rounded-2xl p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-opti-lime/30 transition-colors overflow-hidden w-full">
                           {editingUser === u.email ? (
-                            <form onSubmit={saveUser} className="flex-1 flex flex-col md:flex-row items-center gap-4">
-                              <input type="text" value={editUserForm.name} onChange={e => setEditUserForm({...editUserForm, name: e.target.value})} className="bg-[#0F1F2E] border border-white/10 rounded-xl px-4 py-2 text-white w-full md:w-auto" placeholder="Full Name" required />
+                            <form onSubmit={saveUser} className="flex-1 flex flex-col md:flex-row items-center gap-4 w-full">
+                              <input type="text" value={editUserForm.name} onChange={e => setEditUserForm({ ...editUserForm, name: e.target.value })} className="bg-[#0F1F2E] border border-white/10 rounded-xl px-4 py-2 text-white w-full md:w-auto" placeholder="Full Name" required />
                               <input type="email" value={editUserForm.email} readOnly className="bg-[#0F1F2E] border border-white/5 rounded-xl px-4 py-2 text-gray-500 w-full md:w-auto cursor-not-allowed" />
-                              <select value={editUserForm.role} onChange={e => setEditUserForm({...editUserForm, role: e.target.value})} className="bg-[#0F1F2E] border border-white/10 rounded-xl px-4 py-2 text-white w-full md:w-auto">
+                              <select value={editUserForm.role} onChange={e => setEditUserForm({ ...editUserForm, role: e.target.value })} className="bg-[#0F1F2E] border border-white/10 rounded-xl px-4 py-2 text-white w-full md:w-auto">
                                 <option value="employee">Employee</option>
                                 <option value="mentor">Mentor</option>
                                 <option value="intern">Intern</option>
@@ -952,23 +1182,40 @@ export default function AdminPage() {
                             </form>
                           ) : (
                             <>
+                              {/* User info row */}
                               <div
-                                className="flex items-center gap-4 flex-1 cursor-pointer group"
-                                onClick={() => { setSelectedUserProfile(u); setDashboardView('userRecords'); }}
+                                className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer group"
+                                onClick={() => {
+                                  setSelectedUserProfile(u);
+                                  setDashboardView('userRecords');
+                                  if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                                    setTimeout(() => {
+                                      const element = document.getElementById('user-records-box');
+                                      if (element) {
+                                        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                      }
+                                    }, 100);
+                                  }
+                                }}
                               >
-                                <div className="w-12 h-12 rounded-full bg-opti-lime/10 border border-opti-lime/20 group-hover:border-opti-lime/60 flex items-center justify-center font-bold text-xl text-opti-lime transition-colors">
+                                {/* Avatar circle */}
+                                <div className="w-10 h-10 shrink-0 rounded-full bg-opti-lime/10 border border-opti-lime/30 group-hover:border-opti-lime/60 flex items-center justify-center font-bold text-lg text-opti-lime transition-colors">
                                   {u.name.charAt(0).toUpperCase()}
                                 </div>
-                                <div>
-                                  <div className="font-bold text-white text-lg group-hover:text-opti-lime transition-colors">{u.name}</div>
-                                  <div className="text-gray-400 text-sm">{u.email}</div>
+                                {/* Name / email / cta */}
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-bold text-white text-base group-hover:text-opti-lime transition-colors break-words whitespace-normal">{u.name}</div>
+                                  <div className="text-gray-400 text-sm break-all whitespace-normal leading-tight">{u.email}</div>
                                   <div className="text-xs text-opti-lime/60 mt-0.5">Click to view records →</div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-3">
-                                <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-xs font-bold text-gray-300 uppercase tracking-wider mr-4">{u.role}</div>
-                                <button onClick={() => { setEditingUser(u.email); setEditUserForm({ name: u.name, email: u.email, role: u.role }); }} className="px-4 py-2 bg-white/5 text-gray-300 hover:text-white rounded-xl text-sm font-bold transition-colors">Edit</button>
-                                <button onClick={() => deleteUser(u.email)} className="px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-bold transition-colors">Delete</button>
+                              {/* Role badge + action buttons */}
+                              <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
+                                <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-xs font-bold text-gray-300 uppercase tracking-wider w-fit">{u.role}</div>
+                                <div className="flex items-center gap-2 w-full md:w-auto">
+                                  <button onClick={() => { setEditingUser(u.email); setEditUserForm({ name: u.name, email: u.email, role: u.role }); }} className="flex-1 md:flex-initial text-center px-3 py-1.5 bg-white/5 text-gray-300 hover:text-white rounded-xl text-sm font-bold transition-colors">Edit</button>
+                                  <button onClick={() => deleteUser(u.email)} className="flex-1 md:flex-initial text-center px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-bold transition-colors">Delete</button>
+                                </div>
                               </div>
                             </>
                           )}
@@ -981,9 +1228,9 @@ export default function AdminPage() {
                     <div className="mt-4 bg-[#071420] border border-opti-lime/30 rounded-2xl p-6">
                       <h3 className="text-lg font-bold text-white mb-4">Create New Account</h3>
                       <form onSubmit={handleCreateUser} className="flex flex-col md:flex-row items-center gap-4">
-                        <input type="text" value={editUserForm.name} onChange={e => setEditUserForm({...editUserForm, name: e.target.value})} className="bg-[#0F1F2E] border border-white/10 rounded-xl px-4 py-2 text-white w-full" placeholder="Full Name" required />
-                        <input type="email" value={editUserForm.email} onChange={e => setEditUserForm({...editUserForm, email: e.target.value})} className="bg-[#0F1F2E] border border-white/10 rounded-xl px-4 py-2 text-white w-full" placeholder="Email Address" required />
-                        <select value={editUserForm.role} onChange={e => setEditUserForm({...editUserForm, role: e.target.value})} className="bg-[#0F1F2E] border border-white/10 rounded-xl px-4 py-2 text-white w-full">
+                        <input type="text" value={editUserForm.name} onChange={e => setEditUserForm({ ...editUserForm, name: e.target.value })} className="bg-[#0F1F2E] border border-white/10 rounded-xl px-4 py-2 text-white w-full" placeholder="Full Name" required />
+                        <input type="email" value={editUserForm.email} onChange={e => setEditUserForm({ ...editUserForm, email: e.target.value })} className="bg-[#0F1F2E] border border-white/10 rounded-xl px-4 py-2 text-white w-full" placeholder="Email Address" required />
+                        <select value={editUserForm.role} onChange={e => setEditUserForm({ ...editUserForm, role: e.target.value })} className="bg-[#0F1F2E] border border-white/10 rounded-xl px-4 py-2 text-white w-full">
                           <option value="employee">Employee</option>
                           <option value="mentor">Mentor</option>
                           <option value="intern">Intern</option>
@@ -1009,79 +1256,94 @@ export default function AdminPage() {
             );
             const userGrouped = userLogs.reduce((acc: any, log: any) => {
               const d = new Date(log.createdAt);
-              const dateStr = `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()} | ${d.toLocaleDateString(undefined, { weekday: 'long' })}`;
+              const dateStr = `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()} | ${d.toLocaleDateString(undefined, { weekday: 'long' })}`;
               if (!acc[dateStr]) acc[dateStr] = [];
               acc[dateStr].push(log);
               return acc;
             }, {});
             return (
-              <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+              <div id="user-records-box" className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-4 md:p-8 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-4 md:space-y-6 overflow-hidden w-full">
                 {/* Header */}
-                <div className="flex items-center gap-4 pb-6 border-b border-white/5">
+                <div className="flex flex-col gap-3 pb-4 md:pb-6 border-b border-white/5">
+                  {/* Back button row */}
                   <button
-                    onClick={() => { setDashboardView('users'); setSelectedUserProfile(null); }}
-                    className="p-2 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-xl transition-colors font-bold text-sm px-4"
+                    onClick={() => {
+                      setDashboardView('users');
+                      setSelectedUserProfile(null);
+                      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                        setTimeout(() => {
+                          const element = document.getElementById('user-management-box');
+                          if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }, 100);
+                      }
+                    }}
+                    className="self-start p-2 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-xl transition-colors font-bold text-sm px-4"
                   >
                     ← Back
                   </button>
-                  <div className="w-14 h-14 rounded-full bg-opti-lime/10 border border-opti-lime/30 flex items-center justify-center font-bold text-2xl text-opti-lime shrink-0">
-                    {selectedUserProfile.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-2xl font-bold font-outfit text-white">{selectedUserProfile.name}</h2>
-                    <p className="text-gray-400 text-sm">{selectedUserProfile.email}</p>
-                    <span className={`inline-block mt-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${
-                      selectedUserProfile.role === 'mentor' ? 'bg-purple-500/10 text-purple-400' :
-                      selectedUserProfile.role === 'intern' ? 'bg-green-500/10 text-green-400' :
-                      'bg-blue-500/10 text-blue-400'
-                    }`}>{selectedUserProfile.role}</span>
-                  </div>
-                  <div className="ml-auto text-right shrink-0">
-                    <div className="text-3xl font-black text-white">{userLogs.length}</div>
-                    <div className="text-xs text-gray-400 font-bold">Total Records</div>
+                  {/* Avatar + info + count row */}
+                  <div className="flex items-start gap-3 w-full min-w-0">
+                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-opti-lime/10 border border-opti-lime/30 flex items-center justify-center font-bold text-xl md:text-2xl text-opti-lime shrink-0">
+                      {selectedUserProfile.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-lg md:text-2xl font-bold font-outfit text-white break-words whitespace-normal leading-tight">{selectedUserProfile.name}</h2>
+                      <p className="text-gray-400 text-xs md:text-sm break-all whitespace-normal leading-tight mt-0.5">{selectedUserProfile.email}</p>
+                      <span className={`inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${selectedUserProfile.role === 'mentor' ? 'bg-purple-500/10 text-purple-400' :
+                        selectedUserProfile.role === 'intern' ? 'bg-green-500/10 text-green-400' :
+                          'bg-blue-500/10 text-blue-400'
+                        }`}>{selectedUserProfile.role}</span>
+                    </div>
+                    <div className="text-right shrink-0 ml-2">
+                      <div className="text-2xl md:text-3xl font-black text-white">{userLogs.length}</div>
+                      <div className="text-[10px] md:text-xs text-gray-400 font-bold whitespace-nowrap">Total Records</div>
+                    </div>
                   </div>
                 </div>
                 {/* Day-by-day records */}
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   {Object.keys(userGrouped).length === 0 ? (
-                    <div className="text-center text-gray-500 py-16 italic border border-white/5 rounded-2xl bg-[#071420]">
+                    <div className="text-center text-gray-500 py-10 italic border border-white/5 rounded-2xl bg-[#071420]">
                       No work records found for {selectedUserProfile.name}.
                     </div>
                   ) : (
                     Object.keys(userGrouped).map((date) => (
-                      <div key={date} className="bg-[#071420] border border-white/5 rounded-2xl p-6 shadow-inner">
-                        <div className="flex items-center gap-2 mb-5 pb-3 border-b border-white/5">
-                          <CalendarIcon className="w-4 h-4 text-opti-lime shrink-0" />
-                          <span className="text-opti-lime font-bold">{date.split('|')[0].trim()}</span>
-                          <span className="text-opti-lime/40 mx-1">•</span>
-                          <span className="text-opti-lime font-bold">{date.split('|')[1].trim()}</span>
-                          <span className="ml-auto text-xs text-gray-500 font-bold bg-white/5 px-2 py-0.5 rounded-full">
+                      <div key={date} className="bg-[#071420] border border-white/5 rounded-2xl p-3 md:p-6 shadow-inner overflow-hidden">
+                        {/* Date header */}
+                        <div className="flex items-start gap-1.5 mb-4 pb-3 border-b border-white/5 flex-wrap">
+                          <CalendarIcon className="w-3.5 h-3.5 md:w-4 md:h-4 text-opti-lime shrink-0 mt-0.5" />
+                          <span className="text-opti-lime font-bold text-xs md:text-sm">{date.split('|')[0].trim()}</span>
+                          <span className="text-opti-lime/40 text-xs">•</span>
+                          <span className="text-opti-lime font-bold text-xs md:text-sm">{date.split('|')[1].trim()}</span>
+                          <span className="ml-auto text-[10px] md:text-xs text-gray-500 font-bold bg-white/5 px-2 py-0.5 rounded-full whitespace-nowrap">
                             {userGrouped[date].length} {userGrouped[date].length === 1 ? 'entry' : 'entries'}
                           </span>
                         </div>
-                        <div className="space-y-4">
+                        <div className="space-y-3 md:space-y-4">
                           {userGrouped[date].map((log: any, idx: number) => (
-                            <div 
-                              key={log.id || idx} 
-                              className="relative pl-6 py-1 border-l-2 border-white/10 last:border-transparent cursor-pointer hover:bg-white/5 rounded-xl transition-colors group/record"
+                            <div
+                              key={log.id || idx}
+                              className="relative pl-4 md:pl-6 py-1 border-l-2 border-white/10 last:border-transparent cursor-pointer hover:bg-white/5 rounded-xl transition-colors group/record overflow-hidden"
                               onClick={() => {
                                 setSelectedRecord(log);
                                 setEditRecordText(log.textContent || '');
                                 setIsEditingRecord(false);
                               }}
                             >
-                              <div className="absolute left-[-5px] top-3 w-2.5 h-2.5 rounded-full bg-opti-lime/60"></div>
-                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                              <div className="absolute left-[-5px] top-3 w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-opti-lime/60"></div>
+                              <div className="flex items-center gap-1.5 md:gap-2 mb-1.5 flex-wrap">
                                 <span className="text-xs font-bold text-opti-lime flex items-center gap-1">
-                                  <Play size={10} /> {new Date(log.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                  <Play size={10} /> {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                                 {log.category && (
                                   <><span className="text-gray-600 text-[10px]">•</span><span className="text-xs text-gray-400">{log.category}</span></>
                                 )}
                               </div>
-                              <div className="text-gray-200 leading-relaxed whitespace-pre-wrap text-sm">{log.textContent}</div>
+                              <div className="text-gray-200 leading-relaxed text-sm break-words whitespace-pre-wrap overflow-hidden">{log.textContent}</div>
                               {log.tags && (
-                                <div className="flex flex-wrap gap-2 mt-2">
+                                <div className="flex flex-wrap gap-1.5 md:gap-2 mt-2">
                                   {log.tags.split(',').map((tag: string, i: number) => tag.trim() ? (
                                     <span key={i} className="bg-white/5 border border-white/10 text-gray-400 px-2 py-0.5 rounded-full text-xs">{tag.trim()}</span>
                                   ) : null)}
@@ -1100,13 +1362,13 @@ export default function AdminPage() {
 
 
           {activeTab === 'voice' && (
-            <div className="flex flex-col xl:flex-row gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 h-[650px]">
+            <div id="voice-capture-box" className="flex flex-col xl:flex-row gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 h-[650px]">
               {/* Column 1: Record Your Voice */}
               <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col flex-1 shadow-2xl relative">
                 <h2 className="text-xl font-bold font-outfit text-white mb-12">Record Your Voice</h2>
-                
+
                 <div className="flex-1 flex flex-col items-center justify-center -mt-10">
-                  <div 
+                  <div
                     onClick={!isRecording ? startRecording : undefined}
                     className={`w-40 h-40 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${isRecording && !isPaused ? 'bg-opti-lime text-[#071420] shadow-[0_0_50px_rgba(205,255,100,0.3)] scale-105' : 'bg-[#071420] text-gray-400 hover:text-white border border-white/5 hover:border-opti-lime/50'}`}
                   >
@@ -1138,22 +1400,26 @@ export default function AdminPage() {
 
               {/* Column 2: Live Transcription */}
               <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col flex-1 shadow-2xl">
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-xl font-bold font-outfit text-white">Live Transcription</h2>
-                  <div className="relative">
-                    <Globe size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-opti-lime" />
-                    <select 
+                <div className="flex items-center justify-between mb-4 md:mb-8 gap-2">
+                  <h2 className="text-base md:text-xl font-bold font-outfit text-white whitespace-nowrap">Live Transcription</h2>
+                  <div className="relative shrink-0">
+                    <Globe size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-opti-lime pointer-events-none z-10" />
+                    <select
                       value={language}
                       onChange={(e) => setLanguage(e.target.value)}
                       disabled={isRecording}
-                      className="bg-[#071420] border border-white/10 rounded-xl py-2 pl-9 pr-8 text-sm font-bold text-white appearance-none outline-none focus:border-opti-lime/50 disabled:opacity-50"
+                      className="bg-[#071420] border border-white/10 rounded-xl py-2 pl-8 pr-6 text-xs md:text-sm font-bold text-white appearance-none outline-none focus:border-opti-lime/50 disabled:opacity-50 max-w-[72px] md:max-w-none truncate"
                     >
                       <option value="en-US">English (US)</option>
                       <option value="ta-IN">Tamil (தமிழ்)</option>
                     </select>
+                    {/* Custom dropdown chevron */}
+                    <svg className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
                   </div>
                 </div>
-                
+
                 <div className="flex-1 bg-[#071420] border border-white/5 rounded-2xl p-6 relative overflow-hidden flex flex-col shadow-inner">
                   <div className="flex-1 overflow-y-auto text-gray-300 leading-relaxed text-lg font-inter custom-scrollbar pr-4 whitespace-pre-wrap">
                     {transcript || <span className="text-gray-600 italic">Start speaking to see transcription...</span>}
@@ -1166,81 +1432,81 @@ export default function AdminPage() {
 
           {/* TEXT CAPTURE TAB */}
           {activeTab === 'text' && (
-            <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col shadow-2xl h-[650px] animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <div className="flex justify-between items-center mb-6">
-                 <h2 className="text-2xl font-bold">Manual Text Input</h2>
-               </div>
-               <textarea 
-                 value={manualText}
-                 onChange={(e) => setManualText(e.target.value)}
-                 className="flex-1 bg-[#071420] border border-white/5 rounded-2xl p-6 text-white text-lg leading-relaxed resize-none custom-scrollbar focus:outline-none focus:border-opti-lime transition-colors" 
-                 placeholder="Type or paste your worklog details here... It will automatically be saved as an Admin log."
-               ></textarea>
-               <div className="flex justify-end gap-3 mt-6">
-                 <button 
-                   onClick={() => setManualText('')}
-                   disabled={!manualText.trim()}
-                   className="py-4 bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl text-sm font-bold flex items-center justify-center gap-2 w-32 transition-all disabled:opacity-50"
-                 >
-                   <Trash2 size={18} /> Clear
-                 </button>
-                 <button 
-                   onClick={() => {
-                     saveRecord(manualText, 'Manual Text');
-                     setManualText('');
-                   }}
-                   disabled={!manualText.trim()}
-                   className="py-4 bg-opti-lime text-[#071420] rounded-xl text-sm font-bold flex items-center justify-center gap-2 w-48 hover:scale-[1.02] transition-transform disabled:opacity-50"
-                 >
-                   <Save size={18} /> Save Record
-                 </button>
-               </div>
+            <div id="text-input-box" className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col shadow-2xl h-[650px] animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Manual Text Input</h2>
+              </div>
+              <textarea
+                value={manualText}
+                onChange={(e) => setManualText(e.target.value)}
+                className="flex-1 bg-[#071420] border border-white/5 rounded-2xl p-6 text-white text-lg leading-relaxed resize-none custom-scrollbar focus:outline-none focus:border-opti-lime transition-colors"
+                placeholder="Type or paste your worklog details here... It will automatically be saved as an Admin log."
+              ></textarea>
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={() => setManualText('')}
+                  disabled={!manualText.trim()}
+                  className="py-4 bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl text-sm font-bold flex items-center justify-center gap-2 w-32 transition-all disabled:opacity-50"
+                >
+                  <Trash2 size={18} /> Clear
+                </button>
+                <button
+                  onClick={() => {
+                    saveRecord(manualText, 'Manual Text');
+                    setManualText('');
+                  }}
+                  disabled={!manualText.trim()}
+                  className="py-4 bg-opti-lime text-[#071420] rounded-xl text-sm font-bold flex items-center justify-center gap-2 w-48 hover:scale-[1.02] transition-transform disabled:opacity-50"
+                >
+                  <Save size={18} /> Save Record
+                </button>
+              </div>
             </div>
           )}
 
           {/* FILES CAPTURE TAB */}
           {activeTab === 'files' && (
-            <div className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col shadow-2xl h-[650px] animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <div className="flex justify-between items-center mb-6">
-                 <h2 className="text-2xl font-bold">Upload Documents</h2>
-               </div>
+            <div id="files-upload-box" className="bg-[#0F1F2E] border border-white/5 rounded-3xl p-8 flex flex-col shadow-2xl h-[650px] animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Upload Documents</h2>
+              </div>
 
-              <div 
+              <div
                 className={`flex-1 border-2 border-dashed ${isProcessingFile ? 'border-opti-lime/50 bg-opti-lime/5' : 'border-white/20 hover:border-opti-lime/50'} rounded-3xl p-8 flex flex-col shadow-inner items-center justify-center text-center transition-colors relative bg-[#071420]`}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
               >
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  className="hidden" 
-                  accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.mp3,.wav,.ogg" 
-                  onChange={handleFileSelect} 
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.mp3,.wav,.ogg"
+                  onChange={handleFileSelect}
                 />
-              
-              {isProcessingFile ? (
-                <div className="w-full max-w-md flex flex-col items-center">
-                  <Loader2 className="w-16 h-16 text-opti-lime animate-spin mb-6" />
-                  <h2 className="text-2xl font-bold mb-3">Processing File...</h2>
-                  <p className="text-gray-400 mb-6">{fileProgress.text}</p>
-                  <div className="w-full h-3 bg-[#071420] rounded-full overflow-hidden border border-white/10">
-                    <div className="h-full bg-opti-lime transition-all duration-300" style={{ width: `${fileProgress.percent}%` }}></div>
+
+                {isProcessingFile ? (
+                  <div className="w-full max-w-md flex flex-col items-center">
+                    <Loader2 className="w-16 h-16 text-opti-lime animate-spin mb-6" />
+                    <h2 className="text-2xl font-bold mb-3">Processing File...</h2>
+                    <p className="text-gray-400 mb-6">{fileProgress.text}</p>
+                    <div className="w-full h-3 bg-[#071420] rounded-full overflow-hidden border border-white/10">
+                      <div className="h-full bg-opti-lime transition-all duration-300" style={{ width: `${fileProgress.percent}%` }}></div>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <>
-                  <UploadCloud size={64} className="text-gray-600 mb-6" />
-                  <h2 className="text-2xl font-bold mb-3">Upload Admin Documents</h2>
-                  <p className="text-gray-400 mb-8 max-w-md">Drag and drop documents, images, or audio here. The system will process it and store it securely.</p>
-                  <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="py-4 px-8 bg-opti-lime text-[#071420] rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
-                  >
-                     <UploadCloud size={18} /> Browse Files
-                  </button>
-                </>
-              )}
-            </div>
+                ) : (
+                  <>
+                    <UploadCloud size={64} className="text-gray-600 mb-6" />
+                    <h2 className="text-2xl font-bold mb-3">Upload Admin Documents</h2>
+                    <p className="text-gray-400 mb-8 max-w-md">Drag and drop documents, images, or audio here. The system will process it and store it securely.</p>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="py-4 px-8 bg-opti-lime text-[#071420] rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
+                    >
+                      <UploadCloud size={18} /> Browse Files
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           )}
 
@@ -1251,7 +1517,7 @@ export default function AdminPage() {
       <AnimatePresence>
         {selectedRecord && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -1263,7 +1529,7 @@ export default function AdminPage() {
                   <X size={20} />
                 </button>
               </div>
-              
+
               <div className="p-6 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] flex-1 space-y-6">
                 <div className="flex flex-wrap gap-4 text-sm">
                   <div className="bg-[#071420] px-4 py-2 rounded-xl border border-white/5">
@@ -1279,7 +1545,7 @@ export default function AdminPage() {
                     <span className="font-bold text-opti-lime">{selectedRecord.category || 'General'}</span>
                   </div>
                 </div>
-                
+
                 {selectedRecord.tags && (
                   <div className="flex flex-wrap gap-2">
                     {selectedRecord.tags.split(',').map((tag: string, i: number) => tag.trim() ? (
@@ -1287,11 +1553,11 @@ export default function AdminPage() {
                     ) : null)}
                   </div>
                 )}
-                
+
                 <div className="flex-1 min-h-0 flex flex-col">
                   <h3 className="text-sm font-bold text-gray-400 mb-3 shrink-0">Transcript</h3>
                   {isEditingRecord ? (
-                    <textarea 
+                    <textarea
                       value={editRecordText}
                       onChange={(e) => setEditRecordText(e.target.value)}
                       className="w-full flex-1 bg-[#071420] border border-opti-lime/50 rounded-2xl p-5 text-gray-300 leading-relaxed text-base focus:outline-none focus:ring-2 focus:ring-opti-lime/50 transition-all min-h-[250px] resize-y"
@@ -1303,12 +1569,12 @@ export default function AdminPage() {
                   )}
                 </div>
               </div>
-              
+
               <div className="p-6 border-t border-white/10 flex flex-wrap gap-4 bg-[#071420]">
                 {isEditingRecord ? (
                   <>
                     <button onClick={() => {
-                      setEditRecordText(prev => prev + '\n[' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '] ');
+                      setEditRecordText(prev => prev + '\n[' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '] ');
                     }} className="flex-1 flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl font-bold transition-colors" title="Insert Current Time">
                       <Plus size={18} /> Add Time
                     </button>
@@ -1319,7 +1585,7 @@ export default function AdminPage() {
                 ) : (
                   <>
                     <button onClick={() => {
-                      setEditRecordText(selectedRecord.textContent + '\n[' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '] ');
+                      setEditRecordText(selectedRecord.textContent + '\n[' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '] ');
                       setIsEditingRecord(true);
                     }} className="flex-1 flex items-center justify-center gap-2 py-3 bg-opti-lime/10 hover:bg-opti-lime/20 text-opti-lime border border-opti-lime/30 rounded-xl font-bold transition-colors" title="Add a new entry with current time">
                       <Plus size={18} /> Add
@@ -1341,7 +1607,7 @@ export default function AdminPage() {
       {/* TOAST NOTIFICATION */}
       <AnimatePresence>
         {toastMessage && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
